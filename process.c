@@ -316,7 +316,7 @@ static int handler_elif (char **pp) {
     
     if (last < 0) {
     
-        report (REPORT_ERROR, "elif used without if");
+        report (REPORT_ERROR, "'elif': no matching if");
         
         ignore_rest_of_line (pp);
         return enable;
@@ -327,7 +327,7 @@ static int handler_elif (char **pp) {
     
     if (satisfy == 2) {
     
-        report (REPORT_ERROR, "illegal elif");
+        report (REPORT_ERROR, "elif after else");
         
         ignore_rest_of_line (pp);
         return enable;
@@ -354,14 +354,16 @@ static int handler_elif (char **pp) {
 
 }
 
-static int handler_else (char **pp) {
+static int handler_elifdef (char **pp) {
 
     int last = cond_stack.length - 1;
+    int cond = 0;
+    
     long flag;
     
     if (last < 0) {
     
-        report (REPORT_ERROR, "else used without if");
+        report (REPORT_ERROR, "'elifdef': no matching if");
         
         ignore_rest_of_line (pp);
         return enable;
@@ -372,7 +374,117 @@ static int handler_else (char **pp) {
     
     if (satisfy == 2) {
     
-        report (REPORT_ERROR, "illegal else");
+        report (REPORT_ERROR, "elifdef after else");
+        
+        ignore_rest_of_line (pp);
+        return enable;
+    
+    }
+    
+    if (satisfy == 0) {
+    
+        char saved_ch, *temp = *pp;
+        
+        while (!is_end_of_line[(int) *temp]) {
+            ++(temp);
+        }
+        
+        saved_ch = *temp;
+        *temp = '\0';
+        
+        cond = is_defined (*pp);
+        
+        *temp = saved_ch;
+        *pp = find_end_of_line (*pp);
+        
+        if (cond) {
+            satisfy = 1;
+        }
+    
+    } else {
+        ignore_rest_of_line (pp);
+    }
+    
+    enable = !enable && cond && ((flag & CF_ENABLE) != 0);
+    return enable;
+
+}
+
+static int handler_elifndef (char **pp) {
+
+    int last = cond_stack.length - 1;
+    int cond = 0;
+    
+    long flag;
+    
+    if (last < 0) {
+    
+        report (REPORT_ERROR, "'elifndef': no matching if");
+        
+        ignore_rest_of_line (pp);
+        return enable;
+    
+    }
+    
+    flag = (long) cond_stack.data[last];
+    
+    if (satisfy == 2) {
+    
+        report (REPORT_ERROR, "elifndef after else");
+        
+        ignore_rest_of_line (pp);
+        return enable;
+    
+    }
+    
+    if (satisfy == 0) {
+    
+        char saved_ch, *temp = *pp;
+        
+        while (!is_end_of_line[(int) *temp]) {
+            ++(temp);
+        }
+        
+        saved_ch = *temp;
+        *temp = '\0';
+        
+        cond = !is_defined (*pp);
+        
+        *temp = saved_ch;
+        *pp = find_end_of_line (*pp);
+        
+        if (cond) {
+            satisfy = 1;
+        }
+    
+    } else {
+        ignore_rest_of_line (pp);
+    }
+    
+    enable = !enable && cond && ((flag & CF_ENABLE) != 0);
+    return enable;
+
+}
+
+static int handler_else (char **pp) {
+
+    int last = cond_stack.length - 1;
+    long flag;
+    
+    if (last < 0) {
+    
+        report (REPORT_ERROR, "'else': no matching if");
+        
+        ignore_rest_of_line (pp);
+        return enable;
+    
+    }
+    
+    flag = (long) cond_stack.data[last];
+    
+    if (satisfy == 2) {
+    
+        report (REPORT_ERROR, "else after else");
         
         ignore_rest_of_line (pp);
         return enable;
@@ -608,6 +720,24 @@ int process_file (const char *fname) {
                 
                 line = skip_whitespace (line);
                 enabled = handler_elif (&line);
+                
+                continue;
+            
+            } else if (xstrcasecmp (start_p, "%elifdef") == 0 || xstrcasecmp (start_p, ".elifdef") == 0 || xstrcasecmp (start_p, "elifdef") == 0) {
+            
+                *line = saved_ch;
+                
+                line = skip_whitespace (line);
+                enabled = handler_elifdef (&line);
+                
+                continue;
+            
+            } else if (xstrcasecmp (start_p, "%elifndef") == 0 || xstrcasecmp (start_p, ".elifndef") == 0 || xstrcasecmp (start_p, "elifndef") == 0) {
+            
+                *line = saved_ch;
+                
+                line = skip_whitespace (line);
+                enabled = handler_elifndef (&line);
                 
                 continue;
             
