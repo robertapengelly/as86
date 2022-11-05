@@ -17,4 +17,7 @@ void add_pseudo_op (struct pseudo_op *poe);
 void handler_equ (char **pp, char *name);
 void pseudo_ops_init (void);
 
+int is_defined (char *p);
+void handler_define (char **pp);
+
 #endif      /* _PSEUDO_OPS_H */

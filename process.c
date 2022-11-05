@@ -9,7 +9,6 @@
 
 #include    "as.h"
 #include    "frag.h"
-#include    "hashtab.h"
 #include    "intel.h"
 #include    "lex.h"
 #include    "lib.h"
@@ -236,51 +235,6 @@ void demand_empty_rest_of_line (char **pp) {
 }
 
 
-struct hashtab hashtab_defines = { 0 };
-
-static void handler_define (char **pp) {
-
-    char *name;
-    char *value;
-    
-    struct hashtab_name *key;
-    char saved_ch;
-    
-    *pp = skip_whitespace (*pp);
-    name = *pp;
-    
-    while (**pp && **pp != ' ' && !is_end_of_line[(int) **pp]) {
-        (*pp)++;
-    }
-    
-    saved_ch = **pp;
-    **pp = '\0';
-    
-    if ((key = hashtab_alloc_name (xstrdup (name))) == NULL) {
-    
-        **pp = saved_ch;
-        
-        ignore_rest_of_line (pp);
-        return;
-    
-    }
-    
-    *pp = skip_whitespace (*pp + 1);
-    value = *pp;
-    
-    while (**pp && !is_end_of_line[(int) **pp]) {
-        (*pp)++;
-    }
-    
-    saved_ch = **pp;
-    **pp = '\0';
-    
-    hashtab_put (&hashtab_defines, key, xstrdup (value));
-    **pp = saved_ch;
-
-}
-
-
 static struct vector cond_stack = { 0 };
 static int enable = 1, satisfy = 0;
 
@@ -320,7 +274,7 @@ static int handler_ifdef (char **pp) {
     
     vec_push (&cond_stack, (void *) cond_value (enable, satisfy));
     
-    satisfy = symbol_find (*pp) != NULL;
+    satisfy = is_defined (*pp);
     enable = enable && satisfy == 1;
     
     *temp = saved_ch;
@@ -343,7 +297,7 @@ static int handler_ifndef (char **pp) {
     
     vec_push (&cond_stack, (void *) cond_value (enable, satisfy));
     
-    satisfy = symbol_find (*pp) == NULL;
+    satisfy = !is_defined (*pp);
     enable = enable && satisfy == 1;
     
     *temp = saved_ch;
@@ -615,6 +569,8 @@ int process_file (const char *fname) {
             if (xstrcasecmp (start_p, "end") == 0) {
             
                 *line = saved_ch;
+                
+                ignore_rest_of_line (&line);
                 continue;
             
             }

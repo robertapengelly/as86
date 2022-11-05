@@ -108,14 +108,15 @@ static void print_help (void) {
     
     fprintf (stderr, "Usage: %s [options] asmfile...\n\n", program_name);
     fprintf (stderr, "Options:\n\n");
-    fprintf (stderr, "    -I DIR        Add DIR to search list for .include directives\n");
+    fprintf (stderr, "    -D MACRO[=str]    Pre-define a macro\n");
+    fprintf (stderr, "    -I DIR            Add DIR to search list for .include directives\n");
     
-    fprintf (stderr, "    -f FORMAT     Create an output file in format FORMAT (default a.out)\n");
-    fprintf (stderr, "                      Supported formats are: a.out, coff\n");
-    fprintf (stderr, "    -l FILE       Print listings to file FILE\n");
-    fprintf (stderr, "    -o OBJFILE    Name the object-file output OBJFILE (default a.out)\n");
+    fprintf (stderr, "    -f FORMAT         Create an output file in format FORMAT (default a.out)\n");
+    fprintf (stderr, "                          Supported formats are: a.out, coff\n");
+    fprintf (stderr, "    -l FILE           Print listings to file FILE\n");
+    fprintf (stderr, "    -o OBJFILE        Name the object-file output OBJFILE (default a.out)\n");
     
-    fprintf (stderr, "    --help        Print this help information\n");
+    fprintf (stderr, "    --help            Print this help information\n");
     fprintf (stderr, "\n");
     
 _exit:
