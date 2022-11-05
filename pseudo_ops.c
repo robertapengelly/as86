@@ -731,7 +731,9 @@ void handler_define (char **pp) {
     saved_ch = **pp;
     **pp = '\0';
     
+    if (!*value) { value = "1"; }
     hashtab_put (&hashtab_defines, key, xstrdup (value));
+    
     **pp = saved_ch;
 
 }

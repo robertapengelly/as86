@@ -45,8 +45,6 @@ static void handle_defines (void) {
         
         if (*p2 == '=') {
             *(p2)++ = ' ';
-        } else {
-            p2 = "1";
         }
         
         handler_define (&p1);
