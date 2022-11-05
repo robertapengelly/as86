@@ -1,0 +1,22 @@
+#******************************************************************************
+# @file             Makefile.pdw
+#******************************************************************************
+AS=aswin
+CC=gccwin
+LD=ldwin
+
+COPTS=-S -O2 -fno-common -ansi -I. -I../pdos/pdpclib -D__WIN32__ -D__NOBIVA__ -D__PDOS__
+COBJ=aout.o as.o coff.o cstr.o expr.o fixup.o frag.o hashtab.o intel.o lib.o listing.o load_line.o process.o pseudo_ops.o report.o section.o symbol.o vector.o write.o
+
+all: clean as86.exe
+
+as86.exe: $(COBJ)
+  $(LD) -s -o as86.exe ../pdos/pdpclib/w32start.o $(COBJ) ../pdos/pdpclib/msvcrt.a
+
+.c.o:
+  $(CC) $(COPTS) $<
+  $(AS) -o $@ $*.s
+  rm -f $*.s
+
+clean:
+  rm -f *.o as86.exe

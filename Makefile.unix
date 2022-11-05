@@ -1,0 +1,26 @@
+#******************************************************************************
+# @file             Makefile.unix
+#******************************************************************************
+SRCDIR              ?=  $(CURDIR)
+VPATH               :=  $(SRCDIR)
+
+CC                  :=  gcc
+CFLAGS              :=  -D_FILE_OFFSET_BITS=64 -Wall -Werror -Wextra -std=c90
+
+CSRC                :=  aout.c as.c coff.c cstr.c expr.c fixup.c frag.c hashtab.c intel.c lib.c listing.c load_line.c process.c pseudo_ops.c report.c section.c symbol.c vector.c write.c
+
+ifeq ($(OS), Windows_NT)
+all: as86.exe
+
+as86.exe: $(CSRC)
+	$(CC) $(CFLAGS) -o $@ $^
+else
+all: as86
+
+as86: $(CSRC)
+	$(CC) $(CFLAGS) -o $@ $^
+endif
+
+clean:
+	if [ -f as86.exe ]; then rm -rf as86.exe; fi
+	if [ -f as86 ]; then rm -rf as86; fi
