@@ -330,6 +330,13 @@ static void handler_constant (char **pp, int size, int is_rva) {
 
 }
 
+static void handler_data (char **pp) {
+
+    section_subsection_set (data_section, (subsection_t) get_result_of_absolute_expression (pp));
+    demand_empty_rest_of_line (pp);
+
+}
+
 static void handler_reserve (char **pp, int size) {
 
     offset_t repeat;
@@ -560,6 +567,13 @@ end:
 
 }
 
+static void handler_text (char **pp) {
+
+    section_subsection_set (text_section, (subsection_t) get_result_of_absolute_expression (pp));
+    demand_empty_rest_of_line (pp);
+
+}
+
 static void handler_word (char **pp) {
     handler_constant (pp, 2, 0);
 }
@@ -571,10 +585,15 @@ static struct pseudo_op pseudo_ops[] = {
     { ".ascii",     handler_ascii       },
     { ".asciz",     handler_asciz       },
     { ".byte",      handler_byte        },
+    { ".code",      handler_text        },
+    { ".data",      handler_data        },
     { ".global",    handler_global      },
     { ".globl",     handler_global      },
     { ".long",      handler_long        },
+    { ".model",     handler_ignore      },
     { ".org",       handler_org         },
+    { ".stack",     handler_ignore      },
+    { ".text",      handler_text        },
     { ".word",      handler_word        },
     { ".space",     handler_space       },
     
@@ -661,6 +680,13 @@ void handler_equ (char **pp, char *name) {
     
     symbol = symbol_find_or_make (name);
     internal_set (pp, symbol);
+
+}
+
+void handler_ignore (char **pp) {
+
+    report (REPORT_WARNING, "ignored");
+    ignore_rest_of_line (pp);
 
 }
 

@@ -351,6 +351,15 @@ void aout_write_object (void) {
 }
 
 
+extern void demand_empty_rest_of_line (char **pp);
+
+static void handler_bss (char **pp) {
+
+    section_subsection_set (bss_section, (subsection_t) get_result_of_absolute_expression (pp));
+    demand_empty_rest_of_line (pp);
+
+}
+
 static void handler_segment (char **pp) {
 
     char saved_ch, *name = *pp;
@@ -379,6 +388,7 @@ out:
 
 static struct pseudo_op pseudo_ops[] = {
 
+    { ".bss",           handler_bss         },
     { ".section",       handler_segment     },
     
     { "section",        handler_segment     },

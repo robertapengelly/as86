@@ -682,7 +682,7 @@ int process_file (const char *fname) {
             
                 *line = saved_ch;
                 
-                ignore_rest_of_line (&line);
+                handler_ignore (&line);
                 continue;
             
             }
