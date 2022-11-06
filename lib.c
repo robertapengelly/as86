@@ -30,6 +30,7 @@ enum options {
     OPTION_HELP,
     OPTION_INCLUDE,
     OPTION_LISTING,
+    OPTION_NOWARN,
     OPTION_OUTFILE
 
 };
@@ -43,6 +44,7 @@ static struct option opts[] = {
     { "l",          OPTION_LISTING,     OPTION_HAS_ARG  },
     { "o",          OPTION_OUTFILE,     OPTION_HAS_ARG  },
     
+    { "-nowarn",    OPTION_NOWARN,      OPTION_NO_ARG   },
     { "-help",      OPTION_HELP,        OPTION_NO_ARG   },
     { 0,            0,                  0               }
 
@@ -116,6 +118,7 @@ static void print_help (void) {
     fprintf (stderr, "    -l FILE           Print listings to file FILE\n");
     fprintf (stderr, "    -o OBJFILE        Name the object-file output OBJFILE (default a.out)\n");
     
+    fprintf (stderr, "    --nowarn          Suppress warnings\n");
     fprintf (stderr, "    --help            Print this help information\n");
     fprintf (stderr, "\n");
     
@@ -358,6 +361,13 @@ void parse_args (int *pargc, char ***pargv, int optind) {
                 }
                 
                 state->listing = xstrdup (optarg);
+                break;
+            
+            }
+            
+            case OPTION_NOWARN: {
+            
+                state->nowarn = 1;
                 break;
             
             }

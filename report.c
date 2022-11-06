@@ -4,6 +4,7 @@
 #include    <stdarg.h>
 #include    <stdio.h>
 
+#include    "as.h"
 #include    "report.h"
 
 extern void get_filename_and_line_number (const char **filename_p, unsigned long *line_number_p);
@@ -76,6 +77,10 @@ void report (int type, const char *fmt, ...) {
     const char *filename;
     unsigned long line_number;
     
+    if (type == REPORT_WARNING && state->nowarn) {
+        return;
+    }
+    
     get_filename_and_line_number (&filename, &line_number);
     
     if (filename) {
@@ -143,6 +148,10 @@ void report (int type, const char *fmt, ...) {
 void report_at (const char *filename, unsigned long line_number, int type, const char *fmt, ...) {
 
     va_list ap;
+    
+    if (type == REPORT_WARNING && state->nowarn) {
+        return;
+    }
     
     if (filename) {
     

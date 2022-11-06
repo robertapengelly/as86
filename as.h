@@ -12,6 +12,7 @@ struct as_state {
     size_t nb_defs, nb_files, nb_inc_paths;
     
     const char *format, *listing, *outfile;
+    int nowarn;
 
 };
 
