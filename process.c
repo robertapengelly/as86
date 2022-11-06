@@ -681,7 +681,7 @@ int process_file (const char *fname) {
             
             if (xstrcasecmp (start_p, ".model") == 0 || xstrcasecmp (start_p, ".stack") == 0 || xstrcasecmp (start_p, "end") == 0 || xstrcasecmp (start_p, "extern") == 0 || xstrcasecmp (start_p, "extrn") == 0) {
             
-                report (REPORT_WARNING, "ignoring everything after %s", start_p);
+                report (REPORT_WARNING, "%s unimplemented; ignored", start_p);
                 *line = saved_ch;
                 
                 ignore_rest_of_line (&line);
