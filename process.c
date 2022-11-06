@@ -14,6 +14,7 @@
 #include    "lib.h"
 #include    "listing.h"
 #include    "load_line.h"
+#include    "macro.h"
 #include    "pseudo_ops.h"
 #include    "process.h"
 #include    "report.h"
@@ -274,7 +275,7 @@ static int handler_ifdef (char **pp) {
     
     vec_push (&cond_stack, (void *) cond_value (enable, satisfy));
     
-    satisfy = is_defined (*pp);
+    satisfy = has_macro (*pp);
     enable = enable && satisfy == 1;
     
     *temp = saved_ch;
@@ -297,7 +298,7 @@ static int handler_ifndef (char **pp) {
     
     vec_push (&cond_stack, (void *) cond_value (enable, satisfy));
     
-    satisfy = !is_defined (*pp);
+    satisfy = !has_macro (*pp);
     enable = enable && satisfy == 1;
     
     *temp = saved_ch;
@@ -392,7 +393,7 @@ static int handler_elifdef (char **pp) {
         saved_ch = *temp;
         *temp = '\0';
         
-        cond = is_defined (*pp);
+        cond = has_macro (*pp);
         
         *temp = saved_ch;
         *pp = find_end_of_line (*pp);
@@ -448,7 +449,7 @@ static int handler_elifndef (char **pp) {
         saved_ch = *temp;
         *temp = '\0';
         
-        cond = !is_defined (*pp);
+        cond = !has_macro (*pp);
         
         *temp = saved_ch;
         *pp = find_end_of_line (*pp);
@@ -678,11 +679,12 @@ int process_file (const char *fname) {
             
             saved_ch = get_symbol_name_end (&line);
             
-            if (xstrcasecmp (start_p, "end") == 0) {
+            if (xstrcasecmp (start_p, ".model") == 0 || xstrcasecmp (start_p, ".stack") == 0 || xstrcasecmp (start_p, "end") == 0 || xstrcasecmp (start_p, "extern") == 0 || xstrcasecmp (start_p, "extrn") == 0) {
             
+                report (REPORT_WARNING, "ignoring everything after %s", start_p);
                 *line = saved_ch;
                 
-                handler_ignore (&line);
+                ignore_rest_of_line (&line);
                 continue;
             
             }

@@ -7,7 +7,7 @@ VPATH               :=  $(SRCDIR)
 CC                  :=  gcc
 CFLAGS              :=  -D_FILE_OFFSET_BITS=64 -Wall -Werror -Wextra -std=c90
 
-CSRC                :=  aout.c as.c coff.c cstr.c expr.c fixup.c frag.c hashtab.c intel.c lib.c listing.c load_line.c process.c pseudo_ops.c report.c section.c symbol.c vector.c write.c
+CSRC                :=  aout.c as.c coff.c cstr.c expr.c fixup.c frag.c hashtab.c intel.c lib.c listing.c load_line.c macro.c process.c pseudo_ops.c report.c section.c symbol.c vector.c write.c
 
 all: as86.exe
 

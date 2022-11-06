@@ -12,6 +12,7 @@
 #include    "intel.h"
 #include    "lib.h"
 #include    "listing.h"
+#include    "macro.h"
 #include    "process.h"
 #include    "pseudo_ops.h"
 #include    "report.h"

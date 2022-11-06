@@ -449,7 +449,7 @@ static void handler_global (char **pp) {
             break;
         }
         
-        ++*pp;
+        ++(*pp);
     
     }
     
@@ -590,9 +590,7 @@ static struct pseudo_op pseudo_ops[] = {
     { ".global",    handler_global      },
     { ".globl",     handler_global      },
     { ".long",      handler_long        },
-    { ".model",     handler_ignore      },
     { ".org",       handler_org         },
-    { ".stack",     handler_ignore      },
     { ".text",      handler_text        },
     { ".word",      handler_word        },
     { ".space",     handler_space       },
@@ -683,13 +681,6 @@ void handler_equ (char **pp, char *name) {
 
 }
 
-void handler_ignore (char **pp) {
-
-    report (REPORT_WARNING, "ignored");
-    ignore_rest_of_line (pp);
-
-}
-
 void pseudo_ops_init (void) {
 
     struct pseudo_op *poe;
@@ -697,69 +688,5 @@ void pseudo_ops_init (void) {
     for (poe = pseudo_ops; poe->name; ++poe) {
         add_pseudo_op (poe);
     }
-
-}
-
-
-struct hashtab hashtab_defines = { 0 };
-extern char is_end_of_line[];
-
-int is_defined (char *p) {
-
-    struct hashtab_name *key;
-    int exists = 0;
-    
-    if ((key = hashtab_alloc_name (p)) == NULL) {
-        return exists;
-    }
-    
-    exists = (hashtab_get (&hashtab_defines, key) != NULL);
-    free (key);
-    
-    return exists;
-
-}
-
-void handler_define (char **pp) {
-
-    char *name;
-    char *value;
-    
-    struct hashtab_name *key;
-    char saved_ch;
-    
-    *pp = skip_whitespace (*pp);
-    name = *pp;
-    
-    while (**pp && **pp != ' ' && !is_end_of_line[(int) **pp]) {
-        (*pp)++;
-    }
-    
-    saved_ch = **pp;
-    **pp = '\0';
-    
-    if ((key = hashtab_alloc_name (xstrdup (name))) == NULL) {
-    
-        **pp = saved_ch;
-        
-        ignore_rest_of_line (pp);
-        return;
-    
-    }
-    
-    *pp = skip_whitespace (*pp + 1);
-    value = *pp;
-    
-    while (**pp && !is_end_of_line[(int) **pp]) {
-        (*pp)++;
-    }
-    
-    saved_ch = **pp;
-    **pp = '\0';
-    
-    if (!*value) { value = "1"; }
-    hashtab_put (&hashtab_defines, key, xstrdup (value));
-    
-    **pp = saved_ch;
 
 }

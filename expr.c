@@ -148,7 +148,7 @@ static void integer_constant (char **pp, struct expr *expr, unsigned int radix) 
 
 }
 
-extern struct hashtab hashtab_defines;
+extern struct hashtab hashtab_macros;
 
 extern const char is_end_of_line[];
 extern char get_symbol_name_end (char **pp);
@@ -402,7 +402,7 @@ static section_t operand (char **pp, struct expr *expr, enum expr_mode expr_mode
                 
                 if ((key = hashtab_alloc_name (name)) != NULL) {
                 
-                    if ((entry = (char *) hashtab_get (&hashtab_defines, key)) != NULL) {
+                    if ((entry = (char *) hashtab_get (&hashtab_macros, key)) != NULL) {
                     
                         char *temp = entry;
                         ret_section = read_into (&temp, expr, 0, expr_mode);
