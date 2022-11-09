@@ -68,6 +68,10 @@ static int output_relocation (FILE *outfile, struct fixup *fixup) {
         
             reloc_entry.Type = IMAGE_REL_I386_DIR32NB;
             break;
+        
+        default:
+        
+            break;
     
     }
     

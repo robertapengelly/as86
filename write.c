@@ -2,11 +2,13 @@
  * @file            write.c
  *****************************************************************************/
 #include    <stdlib.h>
+#include    <string.h>
 
 #include    "as.h"
 #include    "fixup.h"
 #include    "frag.h"
 #include    "intel.h"
+#include    "lib.h"
 #include    "report.h"
 #include    "section.h"
 #include    "symbol.h"
@@ -61,6 +63,29 @@ static void relax_section (section_t section) {
 
                 address += alignment_needed;
                 break;
+            
+            case RELAX_TYPE_CALL: {
+            
+                if (frag->symbol) {
+                
+                    unsigned long old_frag_fixed_size = frag->fixed_size;
+                    long amount = symbol_get_value (frag->symbol);
+                    
+                    if (symbol_is_undefined (frag->symbol)) {
+                        frag->fixed_size += 4;
+                    } else if (amount < 32767) {
+                        frag->fixed_size += 2;
+                    } else {
+                        frag->fixed_size += 4;
+                    }
+                    
+                    address += (frag->fixed_size - old_frag_fixed_size);
+                
+                }
+                
+                break;
+            
+            }
             
             case RELAX_TYPE_ORG:
             case RELAX_TYPE_SPACE:
@@ -140,6 +165,39 @@ static void relax_section (section_t section) {
                         
                     growth = new_offset - old_offset;
                     break;
+                
+                case RELAX_TYPE_CALL: {
+                
+                    growth = 0;
+                    
+                    if (frag->symbol) {
+                    
+                        long amount = symbol_get_value (frag->symbol);
+                        int size = 0;
+                        
+                        if (symbol_is_undefined (frag->symbol)) {
+                            size = 4;
+                        } else if (amount < 32767) {
+                        
+                            size = 2;
+                            frag->symbol = NULL;
+                        
+                        } else {
+                        
+                            size = 4;
+                            frag->symbol = NULL;
+                        
+                        }
+                        
+                        fixup_new (frag, frag->opcode_offset_in_buf, size, frag->symbol, amount, 0, RELOC_TYPE_DEFAULT);
+                    
+                    } else {
+                        /*fixup_new (frag, frag->opcode_offset_in_buf, 4, frag->symbol, frag->offset, 0, RELOC_TYPE_DEFAULT);*/
+                    }
+                    
+                    break;
+                
+                }
                 
                 case RELAX_TYPE_ORG: {
                 
@@ -247,31 +305,51 @@ static void finish_frags_after_relaxation (section_t section) {
             case RELAX_TYPE_ORG:
             case RELAX_TYPE_SPACE: {
             
+                unsigned char fill, *p;
                 offset_t i;
-                unsigned char *p;
-                unsigned char fill;
                 
                 frag->offset = frag->next->address - (frag->address + frag->fixed_size);
                 
-                if (((long)(frag->offset)) < 0) {
+                if (((long) (frag->offset)) < 0) {
                 
                     report_at (frag->filename, frag->line_number, REPORT_ERROR, "attempt to .org/.space backward (%li)", frag->offset);
                     frag->offset = 0;
                 
                 }
-
+                
                 p = finished_frag_increase_fixed_size_by_frag_offset (frag);
                 fill = *p;
                 
                 for (i = 0; i < frag->offset; i++) {
-                
                     p[i] = fill;
-                
                 }
                 
                 break;
             
-            } case RELAX_TYPE_MACHINE_DEPENDENT:
+            }
+            
+            case RELAX_TYPE_CALL: {
+            
+                unsigned char fill = 0, *p;
+                offset_t i;
+                
+                frag->offset = frag->next->address - (frag->address + frag->fixed_size);
+                
+                if (((long) (frag->offset)) < 0) {
+                    frag->offset = 0;
+                }
+                
+                p = finished_frag_increase_fixed_size_by_frag_offset (frag);
+                
+                for (i = 0; i < frag->offset; i++) {
+                    p[i] = fill;
+                }
+                
+                break;
+            
+            }
+            
+            case RELAX_TYPE_MACHINE_DEPENDENT:
             
                 machine_dependent_finish_frag (frag);
                 break;
@@ -333,8 +411,8 @@ static unsigned long fixup_section (section_t section) {
     struct fixup *fixup;
     section_t add_symbol_section;
     
-    unsigned long section_reloc_count = 0;
-    unsigned long add_number;
+    unsigned long add_number, section_reloc_count = 0;
+    unsigned char *p;
     
     section_set (section);
     
@@ -366,6 +444,33 @@ static unsigned long fixup_section (section_t section) {
                 
                 fixup->add_number = add_number;
                 fixup->add_symbol = NULL;
+            
+            }
+        
+        }
+        
+        p = fixup->frag->buf + fixup->where;
+        
+        if (*(p - 1) == 0x9A) {
+        
+            if (state->seg_jmp && fixup->add_symbol == NULL) {
+            
+                add_number -= (fixup->size + fixup->where + fixup->frag->address);
+                
+                if ((long) add_number < 32767) {
+                
+                    machine_dependent_number_to_chars (p, add_number, 2);
+                    *(p - 1) = 0xE8;
+                
+                } else {
+                
+                    unsigned short segment = add_number / 16;
+                    unsigned short offset = add_number % 16;
+                    
+                    machine_dependent_number_to_chars (p, offset, 2);
+                    machine_dependent_number_to_chars (p, segment, 2);
+                
+                }
             
             }
         

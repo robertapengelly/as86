@@ -3,10 +3,14 @@
  *****************************************************************************/
 #include    <stddef.h>
 
+#include    "as.h"
 #include    "expr.h"
 #include    "fixup.h"
+#include    "frag.h"
 #include    "lib.h"
+#include    "report.h"
 #include    "section.h"
+#include    "symbol.h"
 
 static struct fixup *fixup_new_internal (struct frag *frag, unsigned long where, int size, struct symbol *add_symbol, long add_number, int pcrel, reloc_type_t reloc_type) {
 
@@ -58,6 +62,7 @@ struct fixup *fixup_new_expr (struct frag *frag, unsigned long where, int size, 
         
             add_symbol = expr->add_symbol;
             add_number = expr->add_number;
+            
             break;
         
         case EXPR_TYPE_SYMBOL_RVA:

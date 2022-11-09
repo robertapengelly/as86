@@ -171,6 +171,7 @@ enum expr_type machine_dependent_parse_operator (char **pp, char *name, char *or
 char *machine_dependent_assemble_line (char *line);
 
 int machine_dependent_force_relocation_local (fixup_t fixup);
+int machine_dependent_get_bits (void);
 int machine_dependent_is_register (const char *p);
 int machine_dependent_need_index_operator (void);
 int machine_dependent_parse_name (char **pp, struct expr *expr, char *name, char *original_saved_c);
@@ -179,6 +180,7 @@ long machine_dependent_estimate_size_before_relax (struct frag *frag, section_t 
 long machine_dependent_pcrel_from (struct fixup *fixup);
 long machine_dependent_relax_frag (struct frag *frag, section_t section, long change);
 
+void machine_dependent_number_to_chars (unsigned char *p, unsigned long number, unsigned long size);
 void machine_dependent_apply_fixup (fixup_t fixup, unsigned long value);
 void machine_dependent_finish_frag (frag_t frag);
 void machine_dependent_init (void);

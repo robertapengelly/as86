@@ -90,7 +90,6 @@ static section_t get_known_section_expression (char **pp, struct expr *expr) {
 static void internal_set (char **pp, struct symbol *symbol) {
 
     struct expr expr;
-    
     expression_read_into (pp, &expr);
     
     if (expr.type == EXPR_TYPE_INVALID) {
@@ -209,8 +208,6 @@ static void handler_constant (char **pp, int size, int is_rva) {
     
     do {
     
-        tmp = (*pp = skip_whitespace (*pp));
-        
         if (current_section == bss_section) {
         
             report (REPORT_WARNING, "attempt to initialize memory in a nobits section: ignored");
@@ -238,9 +235,36 @@ static void handler_constant (char **pp, int size, int is_rva) {
         if (xstrcasecmp (tmp, "dup") == 0) {
         
             **pp = saved_ch;
-            
             *pp = skip_whitespace (*pp);
+            
+            if (**pp == '(') {
+            
+                *pp = skip_whitespace (*pp + 1);
+                
+                if (**pp == '?') {
+                
+                    *pp = skip_whitespace (*pp + 1);
+                    
+                    if (**pp == ')') {
+                    
+                        ++(*pp);
+                        
+                        val.add_number = 0;
+                        val.add_symbol = NULL;
+                        val.op_symbol = NULL;
+                        val.type = EXPR_TYPE_CONSTANT;
+                        
+                        goto got_expression;
+                    
+                    }
+                
+                }
+            
+            }
+            
             expression_read_into (pp, &val);
+            
+        got_expression:
             
             if (val.type != EXPR_TYPE_CONSTANT) {
             
@@ -286,10 +310,7 @@ static void handler_constant (char **pp, int size, int is_rva) {
             
             }
             
-        skip:
-            
-            *pp = skip_whitespace (*pp);
-            continue;
+            goto skip;
         
         }
         
@@ -321,6 +342,8 @@ static void handler_constant (char **pp, int size, int is_rva) {
         } else {
             report (REPORT_ERROR, "value is not a constant");
         }
+        
+    skip:
         
         *pp = skip_whitespace (*pp);
     

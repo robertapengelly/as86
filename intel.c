@@ -23,8 +23,8 @@
 static int allow_no_prefix_reg = 1;
 static int intel_syntax = 1;
 
-static int cpu_level = 3;
-static int bits = 32;
+static int cpu_level = 0;
+static int bits = 16;
 
 #define     RELAX_SUBTYPE_SHORT_JUMP                        0x00
 #define     RELAX_SUBTYPE_CODE16_JUMP                       0x01
@@ -1060,7 +1060,7 @@ static const struct reg_entry *parse_register (const char *reg_string, char **en
 
 }
 
-static void machine_dependent_number_to_chars (unsigned char *p, unsigned long number, unsigned long size) {
+void machine_dependent_number_to_chars (unsigned char *p, unsigned long number, unsigned long size) {
     
     unsigned long i;
     
@@ -2058,6 +2058,13 @@ static void output_call_or_jumpbyte (void) {
         report (REPORT_WARNING, "skipping prefixes on this instruction");
     }
     
+    if (state->seg_jmp && instruction.template.base_opcode == 0xE8 && size == 2) {
+    
+        instruction.template.base_opcode = 0x9A;
+        size += 4;
+    
+    }
+    
     frag_append_1_char (instruction.template.base_opcode);
     
     if (instruction.disps[0]->type == EXPR_TYPE_CONSTANT) {
@@ -2072,8 +2079,20 @@ static void output_call_or_jumpbyte (void) {
     
     }
     
-    fixup_new_expr (current_frag, current_frag->fixed_size, size, instruction.disps[0], 1, RELOC_TYPE_DEFAULT);
-    frag_increase_fixed_size (size);
+    if (instruction.template.opcode_modifier & JUMPBYTE || !state->seg_jmp) {
+    
+        fixup_new_expr (current_frag, current_frag->fixed_size, size, instruction.disps[0], 1, RELOC_TYPE_DEFAULT);
+        frag_increase_fixed_size (size);
+    
+    } else {
+    
+        struct symbol *symbol = instruction.disps[0]->add_symbol;
+        unsigned long offset = instruction.disps[0]->add_number;
+        
+        frag_set_as_variant (RELAX_TYPE_CALL, 0, symbol, offset, current_frag->fixed_size);
+        frag_alloc_space (size + 4);
+    
+    }
 
 }
 
@@ -4106,6 +4125,10 @@ int machine_dependent_force_relocation_local (struct fixup *fixup) {
     return fixup->pcrel == 0;
 }
 
+int machine_dependent_get_bits (void) {
+    return bits;
+}
+
 int machine_dependent_is_register (const char *p) {
 
     struct hashtab_name *key;
@@ -4280,7 +4303,7 @@ long machine_dependent_relax_frag (struct frag *frag, section_t section, long ch
     aim = target - frag->address - frag->fixed_size;
     
     if (aim > 0) {
-        
+    
         for (new_subtype = frag->relax_subtype; relax_table[new_subtype].next_subtype; new_subtype = relax_table[new_subtype].next_subtype) {
         
             if (aim <= relax_table[new_subtype].forward_reach) {
@@ -4349,11 +4372,8 @@ void machine_dependent_finish_frag (struct frag *frag) {
         
         if (RELAX_SUBTYPE_FORCED_SHORT_JUMP) {
         
-            if (displacement > relax_table[frag->relax_subtype].forward_reach
-                || displacement < relax_table[frag->relax_subtype].backward_reach) {
-            
+            if (displacement > relax_table[frag->relax_subtype].forward_reach || displacement < relax_table[frag->relax_subtype].backward_reach) {
                 report_at (frag->filename, frag->line_number, REPORT_ERROR, "forced short jump out of range");
-            
             }
         
         }
@@ -4386,7 +4406,7 @@ void machine_dependent_finish_frag (struct frag *frag) {
             case ENCODE_RELAX_SUBTYPE (RELAX_SUBTYPE_CONDITIONAL_JUMP86, RELAX_SUBTYPE_LONG16_JUMP):
             
                 extension = relax_table[frag->relax_subtype].size_of_variable_part;
-            
+                
                 /* Negates the condition and jumps past unconditional jump. */
                 opcode_pos[0] ^= 1;
                 opcode_pos[1] = 3;

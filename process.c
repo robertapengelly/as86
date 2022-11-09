@@ -679,7 +679,27 @@ int process_file (const char *fname) {
             
             saved_ch = get_symbol_name_end (&line);
             
-            if (xstrcasecmp (start_p, ".model") == 0 || xstrcasecmp (start_p, ".stack") == 0 || xstrcasecmp (start_p, "end") == 0 || xstrcasecmp (start_p, "extern") == 0 || xstrcasecmp (start_p, "extrn") == 0) {
+            if (xstrcasecmp (start_p, ".model") == 0) {
+            
+                *line = saved_ch;
+                
+                start_p = (line = skip_whitespace (line));
+                saved_ch = get_symbol_name_end (&line);
+                
+                if (xstrcasecmp (start_p, "small") == 0) {
+                    state->seg_jmp = 0;
+                } else if (xstrcasecmp (start_p, "medium") == 0) {
+                    state->seg_jmp = 1;
+                }
+                
+                *line = saved_ch;
+                
+                demand_empty_rest_of_line (&line);
+                continue;
+            
+            }
+            
+            if (xstrcasecmp (start_p, ".stack") == 0 || xstrcasecmp (start_p, "end") == 0 || xstrcasecmp (start_p, "extern") == 0 || xstrcasecmp (start_p, "extrn") == 0) {
             
                 report (REPORT_WARNING, "%s unimplemented; ignored", start_p);
                 *line = saved_ch;
