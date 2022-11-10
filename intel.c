@@ -3017,6 +3017,14 @@ static int intel_parse_operand (char *operand_string) {
     intel_syntax = -1;
     expression_read_into (&operand_string, expr);
     
+    if (expr->type == EXPR_TYPE_SYMBOL) {
+    
+        if (strcmp (expr->add_symbol->name, "DGROUP") == 0) {
+            expr->type = EXPR_TYPE_OFFSET;
+        }
+    
+    }
+    
     ret = intel_simplify_expr (expr);
     intel_syntax = 1;
     
