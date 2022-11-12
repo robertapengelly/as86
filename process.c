@@ -688,13 +688,13 @@ int process_file (const char *fname) {
                 saved_ch = get_symbol_name_end (&line);
                 
                 if (xstrcasecmp (start_p, "tiny") == 0) {
-                    state->seg_jmp = 0;
+                    state->model = 1;
                 } else if (xstrcasecmp (start_p, "small") == 0) {
-                    state->seg_jmp = 0;
+                    state->model = 2;
                 } else if (xstrcasecmp (start_p, "medium") == 0) {
-                    state->seg_jmp = 1;
+                    state->model = 4;
                 } else if (xstrcasecmp (start_p, "large") == 0) {
-                    state->seg_jmp = 1;
+                    state->model = 5;
                 } else {
                 
                     struct hashtab_name *key;
@@ -708,22 +708,22 @@ int process_file (const char *fname) {
                             
                             if (xstrcasecmp (temp, "tiny") == 0) {
                             
-                                state->seg_jmp = 0;
+                                state->model = 1;
                                 goto got_model;
                             
                             } else if (xstrcasecmp (temp, "small") == 0) {
                             
-                                state->seg_jmp = 0;
+                                state->model = 2;
                                 goto got_model;
                             
                             } else if (xstrcasecmp (temp, "medium") == 0) {
                             
-                                state->seg_jmp = 1;
+                                state->model = 4;
                                 goto got_model;
                             
                             } else if (xstrcasecmp (temp, "large") == 0) {
                             
-                                state->seg_jmp = 1;
+                                state->model = 5;
                                 goto got_model;
                             
                             }

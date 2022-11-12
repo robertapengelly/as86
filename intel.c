@@ -2058,7 +2058,7 @@ static void output_call_or_jumpbyte (void) {
         report (REPORT_WARNING, "skipping prefixes on this instruction");
     }
     
-    if (state->seg_jmp && instruction.template.base_opcode == 0xE8 && size == 2) {
+    if (state->model >= 4 && instruction.template.base_opcode == 0xE8 && size == 2) {
     
         instruction.template.base_opcode = 0x9A;
         size += 4;
@@ -2079,7 +2079,7 @@ static void output_call_or_jumpbyte (void) {
     
     }
     
-    if (instruction.template.opcode_modifier & JUMPBYTE || !state->seg_jmp) {
+    if (instruction.template.opcode_modifier & JUMPBYTE || state->model < 4) {
     
         fixup_new_expr (current_frag, current_frag->fixed_size, size, instruction.disps[0], 1, RELOC_TYPE_DEFAULT);
         frag_increase_fixed_size (size);
@@ -3657,7 +3657,7 @@ static int match_template (void) {
     
     }
     
-    if (state->seg_jmp && state->procs.length > 0) {
+    if (state->model >= 4 && state->procs.length > 0) {
     
         if (template->base_opcode == 0xC3) {
             template += 2;
@@ -4366,7 +4366,7 @@ void machine_dependent_apply_fixup (struct fixup *fixup, unsigned long value) {
     
     if (*(p - 1) == 0x9A) {
     
-        if (state->seg_jmp && fixup->add_symbol == NULL) {
+        if (state->model >= 4 && fixup->add_symbol == NULL) {
         
             value -= (fixup->where + fixup->frag->address);
             
