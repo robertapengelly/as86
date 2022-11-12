@@ -927,6 +927,18 @@ int process_file (const char *fname) {
                     
                     }
                     
+                    if (xstrcasecmp (temp_start_p, "label") == 0) {
+                    
+                        symbol_label (start_p);
+                        
+                        *temp_line = temp_ch;
+                        line = temp_line;
+                        
+                        ignore_rest_of_line (&line);
+                        continue;
+                    
+                    }
+                    
                     if (xstrcasecmp (temp_start_p, "proc") == 0) {
                     
                         char *name = xstrdup (start_p);
