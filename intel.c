@@ -4385,6 +4385,8 @@ void machine_dependent_apply_fixup (struct fixup *fixup, unsigned long value) {
             
             }
         
+        } else {
+            machine_dependent_number_to_chars (p, 0, fixup->size);
         }
     
     } else {
