@@ -640,7 +640,7 @@ int process_file (const char *fname) {
     size_t real_line_len;
     char *real_line;
     
-    int enabled = 1;
+    int enabled = 1, i;
     FILE *ifp;
     
     if ((ifp = fopen (fname, "r")) == NULL) {
@@ -1019,6 +1019,13 @@ int process_file (const char *fname) {
     
         int count = cond_stack.length;
         report (REPORT_ERROR, "%d if statement%s not closed", count, (count == 1 ? "" : "s"));
+    
+    }
+    
+    for (i = 0; i < state->procs.length; ++i) {
+    
+        char *name = (char *) state->procs.data[i];
+        report (REPORT_ERROR, "procedure %s is not closed", name);
     
     }
     
