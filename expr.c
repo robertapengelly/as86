@@ -392,8 +392,6 @@ static section_t operand (char **pp, struct expr *expr, enum expr_mode expr_mode
         default_:
         default:
         
-            if (**pp == '@') { ++(*pp); }
-            
             if (is_name_beginner ((int) (*pp)[0])) {
             
                 struct symbol *symbol;
@@ -404,7 +402,7 @@ static section_t operand (char **pp, struct expr *expr, enum expr_mode expr_mode
                 name = *pp;
                 c = get_symbol_name_end (pp);
                 
-                if (strcmp (name, "CodeSize") == 0) {
+                if (strcmp (name, "@CodeSize") == 0) {
                 
                     char *val = (state->model >= 4 ? "1" : "0");
                     ret_section = read_into (&val, expr, 0, expr_mode);
@@ -414,7 +412,7 @@ static section_t operand (char **pp, struct expr *expr, enum expr_mode expr_mode
                     (*pp) = skip_whitespace (*pp);
                     return ret_section;
                 
-                } else if (strcmp (name, "DataSize") == 0) {
+                } else if (strcmp (name, "@DataSize") == 0) {
                 
                     char *val = (state->model <= 4 ? "0" : "1");
                     ret_section = read_into (&val, expr, 0, expr_mode);
