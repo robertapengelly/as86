@@ -9,6 +9,7 @@
 
 #include    "as.h"
 #include    "frag.h"
+#include    "hashtab.h"
 #include    "intel.h"
 #include    "lex.h"
 #include    "lib.h"
@@ -686,13 +687,56 @@ int process_file (const char *fname) {
                 start_p = (line = skip_whitespace (line));
                 saved_ch = get_symbol_name_end (&line);
                 
-                if (xstrcasecmp (start_p, "small") == 0) {
+                if (xstrcasecmp (start_p, "tiny") == 0) {
                     state->seg_jmp = 0;
-                } else if (xstrcasecmp (start_p, "medium") == 0 || xstrcasecmp (start_p, "large") == 0) {
+                } else if (xstrcasecmp (start_p, "small") == 0) {
+                    state->seg_jmp = 0;
+                } else if (xstrcasecmp (start_p, "medium") == 0) {
+                    state->seg_jmp = 1;
+                } else if (xstrcasecmp (start_p, "large") == 0) {
                     state->seg_jmp = 1;
                 } else {
+                
+                    struct hashtab_name *key;
+                    char *entry;
+                    
+                    if ((key = hashtab_alloc_name (start_p)) != NULL) {
+                    
+                        if ((entry = (char *) hashtab_get (&hashtab_macros, key)) != NULL) {
+                        
+                            char *temp = entry;
+                            
+                            if (xstrcasecmp (temp, "tiny") == 0) {
+                            
+                                state->seg_jmp = 0;
+                                goto got_model;
+                            
+                            } else if (xstrcasecmp (temp, "small") == 0) {
+                            
+                                state->seg_jmp = 0;
+                                goto got_model;
+                            
+                            } else if (xstrcasecmp (temp, "medium") == 0) {
+                            
+                                state->seg_jmp = 1;
+                                goto got_model;
+                            
+                            } else if (xstrcasecmp (temp, "large") == 0) {
+                            
+                                state->seg_jmp = 1;
+                                goto got_model;
+                            
+                            }
+                        
+                        }
+                    
+                    }
+                    
                     report (REPORT_ERROR, "unsuppored or invalid model specified");
+                
                 }
+                
+            got_model:
                 
                 *line = saved_ch;
                 
@@ -832,6 +876,13 @@ int process_file (const char *fname) {
             
                 *line = saved_ch;
                 line = start_p;
+            
+            }
+            
+            if (*line == '%' && *(line + 1) == ' ') {
+            
+                line++;
+                continue;
             
             }
             
