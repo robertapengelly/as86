@@ -3657,6 +3657,14 @@ static int match_template (void) {
     
     }
     
+    if (state->seg_jmp && state->procs.length > 0) {
+    
+        if (template->base_opcode == 0xC3) {
+            template += 2;
+        }
+    
+    }
+    
     instruction.template = *template;
     
     if (found_reverse_match) {
@@ -4354,7 +4362,34 @@ void machine_dependent_apply_fixup (struct fixup *fixup, unsigned long value) {
         value += machine_dependent_pcrel_from (fixup);
     }
     
-    machine_dependent_number_to_chars (p, value, fixup->size);
+    p = fixup->frag->buf + fixup->where;
+    
+    if (*(p - 1) == 0x9A) {
+    
+        if (state->seg_jmp && fixup->add_symbol == NULL) {
+        
+            value -= (fixup->where + fixup->frag->address);
+            
+            /*if ((long) value >= 32767) {*/
+            if ((long) value >= 65535) {
+            
+                value += (fixup->size + 1);
+                
+                machine_dependent_number_to_chars (p, value % 16, 2);
+                machine_dependent_number_to_chars (p + 2, value / 16, 2);
+            
+            } else {
+            
+                machine_dependent_number_to_chars (p, value - fixup->size, 2);
+                *(p - 1) = 0xE8;
+            
+            }
+        
+        }
+    
+    } else {
+        machine_dependent_number_to_chars (p, value, fixup->size);
+    }
 
 }
 

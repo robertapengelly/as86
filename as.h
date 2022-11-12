@@ -6,6 +6,8 @@
 
 #include    <stddef.h>
 
+#include    "vector.h"
+
 struct as_state {
 
     char **defs, **files, **inc_paths;
@@ -13,6 +15,8 @@ struct as_state {
     
     const char *format, *listing, *outfile;
     int nowarn, seg_jmp;
+    
+    struct vector procs;
 
 };
 

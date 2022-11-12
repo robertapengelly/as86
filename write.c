@@ -73,7 +73,8 @@ static void relax_section (section_t section) {
                     
                     if (symbol_is_undefined (frag->symbol)) {
                         frag->fixed_size += 4;
-                    } else if (amount < 32767) {
+                    /*} else if (amount < 32767) {*/
+                    } else if (amount < 65535) {
                         frag->fixed_size += 2;
                     } else {
                         frag->fixed_size += 4;
@@ -177,7 +178,8 @@ static void relax_section (section_t section) {
                         
                         if (symbol_is_undefined (frag->symbol)) {
                             size = 4;
-                        } else if (amount < 32767) {
+                        /*} else if (amount < 32767) {*/
+                        } else if (amount < 65535) {
                         
                             size = 2;
                             frag->symbol = NULL;
@@ -412,8 +414,6 @@ static unsigned long fixup_section (section_t section) {
     section_t add_symbol_section;
     
     unsigned long add_number, section_reloc_count = 0;
-    unsigned char *p;
-    
     section_set (section);
     
     for (fixup = current_frag_chain->first_fixup; fixup; fixup = fixup->next) {
@@ -444,33 +444,6 @@ static unsigned long fixup_section (section_t section) {
                 
                 fixup->add_number = add_number;
                 fixup->add_symbol = NULL;
-            
-            }
-        
-        }
-        
-        p = fixup->frag->buf + fixup->where;
-        
-        if (*(p - 1) == 0x9A) {
-        
-            if (state->seg_jmp && fixup->add_symbol == NULL) {
-            
-                add_number -= (fixup->size + fixup->where + fixup->frag->address);
-                
-                if ((long) add_number < 32767) {
-                
-                    machine_dependent_number_to_chars (p, add_number, 2);
-                    *(p - 1) = 0xE8;
-                
-                } else {
-                
-                    unsigned short segment = add_number / 16;
-                    unsigned short offset = add_number % 16;
-                    
-                    machine_dependent_number_to_chars (p, offset, 2);
-                    machine_dependent_number_to_chars (p, segment, 2);
-                
-                }
             
             }
         

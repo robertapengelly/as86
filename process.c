@@ -688,8 +688,10 @@ int process_file (const char *fname) {
                 
                 if (xstrcasecmp (start_p, "small") == 0) {
                     state->seg_jmp = 0;
-                } else if (xstrcasecmp (start_p, "medium") == 0) {
+                } else if (xstrcasecmp (start_p, "medium") == 0 || xstrcasecmp (start_p, "large") == 0) {
                     state->seg_jmp = 1;
+                } else {
+                    report (REPORT_ERROR, "unsuppored or invalid model specified");
                 }
                 
                 *line = saved_ch;
@@ -702,6 +704,16 @@ int process_file (const char *fname) {
             if (xstrcasecmp (start_p, ".stack") == 0 || xstrcasecmp (start_p, "end") == 0 || xstrcasecmp (start_p, "extern") == 0 || xstrcasecmp (start_p, "extrn") == 0) {
             
                 report (REPORT_WARNING, "%s unimplemented; ignored", start_p);
+                *line = saved_ch;
+                
+                ignore_rest_of_line (&line);
+                continue;
+            
+            }
+            
+            if (xstrcasecmp (start_p, "proc") == 0 || xstrcasecmp (start_p, "endp") == 0) {
+            
+                report (REPORT_ERROR, "procedure must have a name");
                 *line = saved_ch;
                 
                 ignore_rest_of_line (&line);
@@ -911,6 +923,45 @@ int process_file (const char *fname) {
                         line = skip_whitespace (temp_line + 1);
                         
                         handler_equ (&line, start_p);
+                        continue;
+                    
+                    }
+                    
+                    if (xstrcasecmp (temp_start_p, "proc") == 0) {
+                    
+                        char *name = xstrdup (start_p);
+                        vec_push (&state->procs, (void *) name);
+                        
+                        symbol_label (start_p);
+                        
+                        *temp_line = temp_ch;
+                        line = temp_line;
+                        
+                        demand_empty_rest_of_line (&line);
+                        continue;
+                    
+                    }
+                    
+                    if (xstrcasecmp (temp_start_p, "endp") == 0) {
+                    
+                        if (state->procs.length == 0) {
+                            report (REPORT_ERROR, "block nesting error");
+                        } else {
+                        
+                            int last = state->procs.length - 1;
+                            
+                            if (strcmp (start_p, state->procs.data[last])) {
+                                report (REPORT_ERROR, "procedure name does not match");
+                            } else {
+                                state->procs.length = last;
+                            }
+                        
+                        }
+                        
+                        *temp_line = temp_ch;
+                        line = temp_line;
+                        
+                        demand_empty_rest_of_line (&line);
                         continue;
                     
                     }
