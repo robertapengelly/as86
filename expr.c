@@ -3,6 +3,7 @@
  *****************************************************************************/
 #include    <ctype.h>
 #include    <stddef.h>
+#include    <stdio.h>
 #include    <string.h>
 
 #include    "as.h"
@@ -405,8 +406,8 @@ static section_t operand (char **pp, struct expr *expr, enum expr_mode expr_mode
                 if (strcmp (name, "@CodeSize") == 0) {
                 
                     char *val = (state->model >= 4 ? "1" : "0");
-                    ret_section = read_into (&val, expr, 0, expr_mode);
                     
+                    ret_section = read_into (&val, expr, 0, expr_mode);
                     **pp = c;
                     
                     (*pp) = skip_whitespace (*pp);
@@ -415,8 +416,19 @@ static section_t operand (char **pp, struct expr *expr, enum expr_mode expr_mode
                 } else if (strcmp (name, "@DataSize") == 0) {
                 
                     char *val = (state->model <= 4 ? "0" : "1");
-                    ret_section = read_into (&val, expr, 0, expr_mode);
                     
+                    ret_section = read_into (&val, expr, 0, expr_mode);
+                    **pp = c;
+                    
+                    (*pp) = skip_whitespace (*pp);
+                    return ret_section;
+                
+                } else if (strcmp (name, "@Model") == 0) {
+                
+                    char *val = xmalloc (2);
+                    sprintf (val, "%d", state->model);
+                    
+                    ret_section = read_into (&val, expr, 0, expr_mode);
                     **pp = c;
                     
                     (*pp) = skip_whitespace (*pp);

@@ -969,6 +969,17 @@ int process_file (const char *fname) {
                     
                     temp_ch = get_symbol_name_end (&temp_line);
                     
+                    if (xstrcasecmp (temp_start_p, "db") == 0 || xstrcasecmp (temp_start_p, "dd") == 0 || xstrcasecmp (temp_start_p, "dw") == 0) {
+                    
+                        symbol_label (start_p);
+                        
+                        *temp_line = temp_ch;
+                        line = temp_start_p;
+                        
+                        continue;
+                    
+                    }
+                    
                     if ((temp_ch && temp_ch == '=') || xstrcasecmp (temp_start_p, "equ") == 0) {
                     
                         line = skip_whitespace (temp_line + 1);

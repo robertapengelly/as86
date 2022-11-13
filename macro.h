@@ -6,7 +6,7 @@
 
 #include    "hashtab.h"
 
-struct hashtab hashtab_macros;
+extern struct hashtab hashtab_macros;
 
 int has_macro (char *p);
 void handler_define (char **pp);
