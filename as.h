@@ -16,6 +16,7 @@ struct as_state {
     const char *format, *listing, *outfile;
     int nowarn, model;
     
+    const char *sym_start;
     struct vector procs;
 
 };

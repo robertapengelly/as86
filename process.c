@@ -739,6 +739,22 @@ int process_file (const char *fname) {
             got_model:
                 
                 *line = saved_ch;
+                line = skip_whitespace (line);
+                
+                if (*line == ',') {
+                
+                    line = skip_whitespace (line + 1);
+                    
+                    start_p = line;
+                    saved_ch = get_symbol_name_end (&line);
+                    
+                    if (xstrcasecmp (start_p, "c") == 0) {
+                        state->sym_start = "_";
+                    }
+                    
+                    *line = saved_ch;
+                
+                }
                 
                 demand_empty_rest_of_line (&line);
                 continue;

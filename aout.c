@@ -324,6 +324,17 @@ void aout_write_object (void) {
     
         if (!symbol_is_section_symbol (symbol)) {
         
+            if (symbol_is_external (symbol) && state->sym_start) {
+            
+                if (fwrite (state->sym_start, strlen (state->sym_start), 1, outfile) != 1) {
+                
+                    report_at (NULL, 0, REPORT_ERROR, "Failed to write string table!");
+                    return;
+                
+                }
+            
+            }
+            
             if (fwrite (symbol->name, strlen (symbol->name) + 1, 1, outfile) != 1) {
             
                 report_at (NULL, 0, REPORT_ERROR, "Failed to write string table!");
