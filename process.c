@@ -1019,13 +1019,62 @@ int process_file (const char *fname) {
                     
                     if (xstrcasecmp (temp_start_p, "proc") == 0) {
                     
-                        char *name = xstrdup (start_p);
-                        vec_push (&state->procs, (void *) name);
+                        struct proc *proc = xmalloc (sizeof (*proc));
+                        proc->name = xstrdup (start_p);
                         
-                        symbol_label (start_p);
-                        
+                        symbol_label (proc->name);
                         *temp_line = temp_ch;
+                        
                         line = temp_line;
+                        line = skip_whitespace (line);
+                        
+                        start_p = line;
+                        saved_ch = get_symbol_name_end (&line);
+                        
+                        if (xstrcasecmp (start_p, "uses") == 0) {
+                        
+                            if (saved_ch == ' ') {
+                            
+                                char *reg;
+                                int i;
+                                
+                                line++;
+                                
+                                while (!is_end_of_line[(int) *line] && *line != ',') {
+                                
+                                    line = skip_whitespace (line);
+                                    
+                                    start_p = line;
+                                    saved_ch = get_symbol_name_end (&line);
+                                    
+                                    reg = xstrdup (start_p);
+                                    vec_push (&proc->regs, reg);
+                                    
+                                    *line = saved_ch;
+                                
+                                }
+                                
+                                for (i = 0; i < proc->regs.length; ++i) {
+                                
+                                    char *temp;
+                                    reg = proc->regs.data[i];
+                                    
+                                    temp = xmalloc (4 + 1 + strlen (reg) + 1); 
+                                    sprintf (temp, "push %s", reg);
+                                    
+                                    machine_dependent_assemble_line (temp);
+                                
+                                }
+                            
+                            } else {
+                                *line = saved_ch;
+                            }
+                        
+                        } else {
+                            *line = saved_ch;
+                        }
+                        
+                        vec_push (&state->procs, (void *) proc);
                         
                         demand_empty_rest_of_line (&line);
                         continue;
@@ -1039,11 +1088,15 @@ int process_file (const char *fname) {
                         } else {
                         
                             int last = state->procs.length - 1;
+                            struct proc *proc = state->procs.data[last];
                             
-                            if (strcmp (start_p, state->procs.data[last])) {
+                            if (strcmp (start_p, proc->name)) {
                                 report (REPORT_ERROR, "procedure name does not match");
                             } else {
+                            
+                                free (state->procs.data[last]);
                                 state->procs.length = last;
+                            
                             }
                         
                         }
@@ -1068,6 +1121,34 @@ int process_file (const char *fname) {
                     
                     ignore_rest_of_line (&line);
                     continue;
+                
+                }
+                
+                if (xstrncasecmp (start_p, "ret", 3) == 0) {
+                
+                    if (state->procs.length > 0) {
+                    
+                        struct proc *proc = state->procs.data[state->procs.length - 1];
+                        
+                        if (proc->regs.length > 0) {
+                        
+                            char *temp, *reg;
+                            int i;
+                            
+                            for (i = proc->regs.length - 1; i >= 0; --i) {
+                            
+                                reg = proc->regs.data[i];
+                                
+                                temp = xmalloc (3 + 1 + strlen (reg) + 1);
+                                sprintf (temp, "pop %s", reg);
+                                
+                                machine_dependent_assemble_line (temp);
+                            
+                            }
+                        
+                        }
+                    
+                    }
                 
                 }
                 

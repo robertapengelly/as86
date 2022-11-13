@@ -18,6 +18,7 @@ char *xstrdup (const char *str);
 
 int strstart (const char *val, const char **str);
 int xstrcasecmp (const char *s1, const char *s2);
+int xstrncasecmp (const char *s1, const char *s2, size_t n);
 
 void *xmalloc (size_t size);
 void *xrealloc (void *ptr, size_t size);

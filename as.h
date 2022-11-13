@@ -8,6 +8,13 @@
 
 #include    "vector.h"
 
+struct proc {
+
+    char *name;
+    struct vector regs;
+
+};
+
 struct as_state {
 
     char **defs, **files, **inc_paths;
