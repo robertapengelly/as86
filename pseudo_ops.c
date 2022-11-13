@@ -208,15 +208,6 @@ static void handler_constant (char **pp, int size, int is_rva) {
     
     do {
     
-        if (current_section == bss_section) {
-        
-            report (REPORT_WARNING, "attempt to initialize memory in a nobits section: ignored");
-            ignore_rest_of_line (pp);
-            
-            continue;
-        
-        }
-        
         if (**pp == '"') {
         
             ++(*pp);
@@ -315,6 +306,15 @@ static void handler_constant (char **pp, int size, int is_rva) {
         }
         
         **pp = saved_ch;
+        
+        if (current_section == bss_section) {
+        
+            report (REPORT_WARNING, "attempt to initialize memory in a nobits section: ignored");
+            ignore_rest_of_line (pp);
+            
+            continue;
+        
+        }
         
         if (is_rva) {
         

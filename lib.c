@@ -50,27 +50,6 @@ static struct option opts[] = {
 
 };
 
-static int strstart (const char *val, const char **str) {
-
-    const char *p = val;
-    const char *q = *str;
-    
-    while (*p != '\0') {
-    
-        if (*p != *q) {
-            return 0;
-        }
-        
-        ++p;
-        ++q;
-    
-    }
-    
-    *str = q;
-    return 1;
-
-}
-
 static void add_include_path (const char *pathname) {
 
 
@@ -156,6 +135,27 @@ char *xstrdup (const char *str) {
     strcpy (ptr, str);
     
     return ptr;
+
+}
+
+int strstart (const char *val, const char **str) {
+
+    const char *p = val;
+    const char *q = *str;
+    
+    while (*p != '\0') {
+    
+        if (*p != *q) {
+            return 0;
+        }
+        
+        ++p;
+        ++q;
+    
+    }
+    
+    *str = q;
+    return 1;
 
 }
 

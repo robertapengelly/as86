@@ -170,9 +170,18 @@ static section_t operand (char **pp, struct expr *expr, enum expr_mode expr_mode
     expr->add_number = 0;
     
     *pp = skip_whitespace (*pp);
+    temp = *pp;
     
     if (is_end_of_line[(int) **pp]) {
         goto end_of_line;
+    }
+    
+    if (strstart ("DGROUP", (const char **) &temp)) {
+    
+        if (*temp == ':') {
+            *temp = '_';
+        }
+    
     }
     
     switch (**pp) {
