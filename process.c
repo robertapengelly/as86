@@ -1111,20 +1111,20 @@ int process_file (const char *fname) {
                             
                             } else if (xstrcasecmp (start_p, "dword") == 0) { 
                             
-                                sprintf (temp, "%s long ptr [bp + %d]", name, offset);
+                                sprintf (temp, "%s %s ptr [bp + %d]", name, start_p, offset);
                                 offset += 4;
                             
                             } else if (xstrcasecmp (start_p, "ptr") == 0) { 
                             
-                                if (machine_dependent_get_bits () == 16) {
+                                if (machine_dependent_get_bits () == 32 || state->model == 5) {
                                 
-                                    sprintf (temp, "%s word ptr [bp + %d]", name, offset);
-                                    offset += 2;
+                                    sprintf (temp, "%s dword ptr [bp + %d]", name, offset);
+                                    offset += 4;
                                 
                                 } else {
                                 
-                                    sprintf (temp, "%s long ptr [bp + %d]", name, offset);
-                                    offset += 4;
+                                    sprintf (temp, "%s word ptr [bp + %d]", name, offset);
+                                    offset += 2;
                                 
                                 }
                             

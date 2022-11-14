@@ -4030,6 +4030,24 @@ char *machine_dependent_assemble_line (char *line) {
         goto skip;
     }
     
+    if (current_templates[0].start->base_opcode == 0xC0 && instruction.operands == 2) {
+    
+        int operand;
+        
+        for (operand = 0; operand < instruction.operands; operand++) {
+    
+            if (instruction.types[operand] & IMM) {
+        
+                if (instruction.imms[operand]->type == EXPR_TYPE_CONSTANT && instruction.imms[operand]->add_number == 1) {
+                    instruction.operands--;
+                }
+        
+            }
+        
+        }
+    
+    }
+    
     /**
      * All Intel instructions have reversed operands except "bound" and some other.
      * "ljmp" and "lcall" with 2 immediate operands also do not have operands reversed.

@@ -219,6 +219,7 @@ int load_line (char **line_p, char **line_end_p, char **real_line_p, size_t *rea
                     
                     }
                     
+                    ++newlines;
                     continue;
                 
                 } else if (ll_data->line[pos_in_line] == '\"') {
