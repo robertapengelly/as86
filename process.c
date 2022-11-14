@@ -1118,12 +1118,12 @@ int process_file (const char *fname) {
                             
                                 if (machine_dependent_get_bits () == 32 || state->model == 5) {
                                 
-                                    sprintf (temp, "%s dword ptr [bp + %d]", name, offset);
+                                    sprintf (temp, "%s [bp + %d]", name, offset);
                                     offset += 4;
                                 
                                 } else {
                                 
-                                    sprintf (temp, "%s word ptr [bp + %d]", name, offset);
+                                    sprintf (temp, "%s [bp + %d]", name, offset);
                                     offset += 2;
                                 
                                 }
