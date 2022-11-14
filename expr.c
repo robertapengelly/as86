@@ -202,7 +202,7 @@ static section_t operand (char **pp, struct expr *expr, enum expr_mode expr_mode
                 ++(temp);
             }
             
-            if (tolower ((int) *temp) == 'h' && (*(temp + 1) == ' ' || is_end_of_line [(int) *(temp + 1)])) {
+            if (tolower ((int) *temp) == 'h') {
             
                 *temp++ = ' ';
                 goto is_hex;
@@ -223,7 +223,7 @@ static section_t operand (char **pp, struct expr *expr, enum expr_mode expr_mode
                 ++(temp);
             }
             
-            if (tolower ((int) *temp) == 'h' && (*(temp + 1) == ' ' || is_end_of_line [(int) *(temp + 1)])) {
+            if (tolower ((int) *temp) == 'h') {
             
                 *temp++ = ' ';
                 goto is_hex;

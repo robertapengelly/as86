@@ -609,7 +609,7 @@ value_t symbol_resolve_value (struct symbol *symbol) {
             
             default:
             
-                report_at (__FILE__, __LINE__, REPORT_INTERNAL_ERROR, "symbol_resolve_value invalid case %i", symbol->value.type);
+                report_at (__FILE__, __LINE__, REPORT_INTERNAL_ERROR, "%s: symbol_resolve_value invalid case %i", symbol->name, symbol->value.type);
                 exit (EXIT_FAILURE);
         
         }

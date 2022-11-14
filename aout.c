@@ -273,6 +273,11 @@ void aout_write_object (void) {
             memset (&symbol_entry, 0, sizeof (symbol_entry));
             
             symbol_entry.n_strx = string_table_pos;
+            
+            if (symbol_is_external (symbol) && state->sym_start) {
+                string_table_pos++;
+            }
+            
             string_table_pos += strlen (symbol->name) + 1;
             
             if (symbol->section == undefined_section) {

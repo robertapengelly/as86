@@ -1073,7 +1073,8 @@ int process_file (const char *fname) {
                         
                         do {
                         
-                            line = skip_whitespace (line + 1);
+                            if (*line == ',') { line++; }
+                            line = skip_whitespace (line);
                             
                             name = line;
                             saved_ch = get_symbol_name_end (&line);

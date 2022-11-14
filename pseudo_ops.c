@@ -220,6 +220,12 @@ static void handler_constant (char **pp, int size, int is_rva) {
         
         }
         
+        tmp = *pp;
+        
+        while (*tmp == '?') {
+            *tmp++ = '0';
+        }
+        
         expression_read_into (pp, &expr);
         
         tmp = (*pp = skip_whitespace (*pp));
