@@ -215,6 +215,8 @@ static void handler_constant (char **pp, int size, int is_rva) {
             while (read_and_append_char_in_ascii (pp, size) == 0) {
                 /* Nothing to do */
             }
+            
+            goto skip;
         
         }
         
@@ -264,6 +266,13 @@ static void handler_constant (char **pp, int size, int is_rva) {
             
             }
             
+            if (val.add_number != 0 && current_section == bss_section) {
+            
+                report (REPORT_WARNING, "attempt to initialize memory in a nobits section: ignored");
+                goto skip;
+            
+            }
+            
             if (expr.type == EXPR_TYPE_CONSTANT) {
             
                 repeat = expr.add_number;
@@ -307,15 +316,6 @@ static void handler_constant (char **pp, int size, int is_rva) {
         
         **pp = saved_ch;
         
-        if (current_section == bss_section) {
-        
-            report (REPORT_WARNING, "attempt to initialize memory in a nobits section: ignored");
-            ignore_rest_of_line (pp);
-            
-            continue;
-        
-        }
-        
         if (is_rva) {
         
             if (expr.type == EXPR_TYPE_SYMBOL) {
@@ -329,6 +329,13 @@ static void handler_constant (char **pp, int size, int is_rva) {
         if (expr.type == EXPR_TYPE_CONSTANT) {
         
             int i;
+            
+            if (expr.add_number != 0 && current_section == bss_section) {
+            
+                report (REPORT_WARNING, "attempt to initialize memory in a nobits section: ignored");
+                goto skip;
+            
+            }
             
             for (i = 0; i < size; i++) {
                 frag_append_1_char ((expr.add_number >> (8 * i)) & 0xff);

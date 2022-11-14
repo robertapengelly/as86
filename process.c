@@ -1033,16 +1033,26 @@ int process_file (const char *fname) {
                         
                         if (xstrcasecmp (start_p, "uses") == 0) {
                         
+                            *line = saved_ch;
+                            
                             if (saved_ch == ' ') {
                             
-                                char *reg;
-                                int i;
+                                char *reg, *temp;
+                                int i, offset = 0;
                                 
-                                line++;
+                                if (state->model < 4) {
+                                    offset = 4;
+                                } else {
+                                    offset = 6;
+                                }
                                 
-                                while (!is_end_of_line[(int) *line] && *line != ',') {
+                                while (!is_end_of_line[(int) *line] && *line == ' ') {
                                 
                                     line = skip_whitespace (line);
+                                    
+                                    if (!isalpha ((int) *line)) {
+                                        break;
+                                    }
                                     
                                     start_p = line;
                                     saved_ch = get_symbol_name_end (&line);
@@ -1051,6 +1061,76 @@ int process_file (const char *fname) {
                                     vec_push (&proc->regs, reg);
                                     
                                     *line = saved_ch;
+                                
+                                }
+                                
+                                while (!is_end_of_line[(int) *line] && *line == ',') {
+                                
+                                    line = skip_whitespace (line + 1);
+                                    
+                                    start_p = line;
+                                    saved_ch = get_symbol_name_end (&line);
+                                    
+                                    if (!isalnum (*start_p)) {
+                                    
+                                        *line = saved_ch;
+                                        break;
+                                    
+                                    }
+                                    
+                                    vec_push (&proc->args, xstrdup (start_p));
+                                    
+                                    temp = xmalloc (strlen (start_p) + 6 + 6);
+                                    sprintf (temp, "%s [bp + %d]", start_p, offset);
+                                    
+                                    if (saved_ch != ':') {
+                                    
+                                        free (temp);
+                                        
+                                        *line = saved_ch;
+                                        break;
+                                    
+                                    }
+                                    
+                                    handler_define (&temp);
+                                    line++;
+                                    
+                                    start_p = line;
+                                    saved_ch = get_symbol_name_end (&line);
+                                    
+                                    if (xstrcasecmp (start_p, "byte") == 0 || xstrcasecmp (start_p, "word") == 0) {
+                                        offset += 2;
+                                    } else if (xstrcasecmp (start_p, "dword") == 0) { 
+                                        offset += 4;
+                                    } else if (xstrcasecmp (start_p, "ptr") == 0) { 
+                                        offset += (machine_dependent_get_bits () == 16 ? 2 : 4);
+                                    } else {
+                                    
+                                        report (REPORT_ERROR, "unsupported argument type");
+                                        
+                                        *line = saved_ch;
+                                        break;
+                                    
+                                    }
+                                    
+                                    *line = saved_ch;
+                                    line = skip_whitespace (line);
+                                
+                                }
+                                
+                                demand_empty_rest_of_line (&line);
+                                
+                                if (proc->args.length > 0) {
+                                
+                                    char *temp = xmalloc (8);
+                                    sprintf (temp, "push bp");
+                                    
+                                    machine_dependent_assemble_line (temp);
+                                    
+                                    temp = xmalloc (10);
+                                    sprintf (temp, "mov bp, sp");
+                                    
+                                    machine_dependent_assemble_line (temp);
                                 
                                 }
                                 
@@ -1145,6 +1225,19 @@ int process_file (const char *fname) {
                                 machine_dependent_assemble_line (temp);
                             
                             }
+                            
+                            proc->regs.length = 0;
+                        
+                        }
+                        
+                        if (proc->args.length > 0) {
+                        
+                            char *temp = xmalloc (7);
+                            sprintf (temp, "pop bp");
+                            
+                            machine_dependent_assemble_line (temp);
+                            
+                            proc->args.length = 0;
                         
                         }
                     

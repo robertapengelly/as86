@@ -11,7 +11,7 @@
 struct proc {
 
     char *name;
-    struct vector regs;
+    struct vector regs, args;
 
 };
 
