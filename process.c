@@ -221,7 +221,7 @@ void demand_empty_rest_of_line (char **pp) {
     *pp = skip_whitespace (*pp);
     
     if (is_end_of_line[(int) **pp]) {
-        ++*pp;
+        ++(*pp);
     } else {
     
         if (isprint ((int) **pp)) {
@@ -1040,12 +1040,6 @@ int process_file (const char *fname) {
                             char *reg;
                             *line = saved_ch;
                             
-                            if (state->model < 4) {
-                                offset = 4;
-                            } else {
-                                offset = 6;
-                            }
-                            
                             while (!is_end_of_line[(int) *line] && *line == ' ') {
                             
                                 line = skip_whitespace (line);
@@ -1069,6 +1063,12 @@ int process_file (const char *fname) {
                             *line = saved_ch;
                             line = start_p;
                         
+                        }
+                        
+                        if (state->model < 4) {
+                            offset = 4;
+                        } else {
+                            offset = 6;
                         }
                         
                         do {
@@ -1143,8 +1143,6 @@ int process_file (const char *fname) {
                             line = skip_whitespace (line);
                         
                         } while (!is_end_of_line[(int) *line] && *line == ',');
-                        
-                        demand_empty_rest_of_line (&line);
                         
                         if (proc->args.length > 0) {
                         
