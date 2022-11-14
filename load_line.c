@@ -194,6 +194,33 @@ int load_line (char **line_p, char **line_end_p, char **real_line_p, size_t *rea
                     in_line_comment = 1;
                     goto copying;
                 
+                } else if (ll_data->line[pos_in_line] == '\\') {
+                
+                    /*ll_data->line[pos_in_line] = ' ';*/
+                    pos_in_line--;
+                    
+                    while (pos_in_real_line < ll_data->read_size) {
+                    
+                        if (ll_data->real_line[pos_in_real_line] == '\r' || ll_data->real_line[pos_in_real_line] == '\n') {
+                        
+                            if (ll_data->real_line[pos_in_real_line] == '\r') {
+                                ++pos_in_real_line;
+                            }
+                            
+                            if (ll_data->real_line[pos_in_real_line] == '\n') {
+                                ++pos_in_real_line;
+                            }
+                            
+                            break;
+                        
+                        }
+                        
+                        ++pos_in_real_line;
+                    
+                    }
+                    
+                    continue;
+                
                 } else if (ll_data->line[pos_in_line] == '\"') {
                     in_quote = 1;
                 } else if (ll_data->line[pos_in_line] == '/') {

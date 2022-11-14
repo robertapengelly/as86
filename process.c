@@ -1020,6 +1020,10 @@ int process_file (const char *fname) {
                     if (xstrcasecmp (temp_start_p, "proc") == 0) {
                     
                         struct proc *proc = xmalloc (sizeof (*proc));
+                        
+                        char *temp, *name;
+                        int offset = 0, i;
+                        
                         proc->name = xstrdup (start_p);
                         
                         symbol_label (proc->name);
@@ -1033,125 +1037,137 @@ int process_file (const char *fname) {
                         
                         if (xstrcasecmp (start_p, "uses") == 0) {
                         
+                            char *reg;
                             *line = saved_ch;
                             
-                            if (saved_ch == ' ') {
+                            if (state->model < 4) {
+                                offset = 4;
+                            } else {
+                                offset = 6;
+                            }
                             
-                                char *reg, *temp;
-                                int i, offset = 0;
+                            while (!is_end_of_line[(int) *line] && *line == ' ') {
+                            
+                                line = skip_whitespace (line);
                                 
-                                if (state->model < 4) {
-                                    offset = 4;
+                                if (!isalpha ((int) *line)) {
+                                    break;
+                                }
+                                
+                                start_p = line;
+                                saved_ch = get_symbol_name_end (&line);
+                                
+                                reg = xstrdup (start_p);
+                                vec_push (&proc->regs, reg);
+                                
+                                *line = saved_ch;
+                            
+                            }
+                        
+                        } else {
+                        
+                            *line = saved_ch;
+                            line = start_p;
+                        
+                        }
+                        
+                        do {
+                        
+                            line = skip_whitespace (line + 1);
+                            
+                            name = line;
+                            saved_ch = get_symbol_name_end (&line);
+                            
+                            if (!isalnum (*name)) {
+                            
+                                *line = saved_ch;
+                                break;
+                            
+                            }
+                            
+                            if (saved_ch != ':') {
+                            
+                                free (temp);
+                                
+                                *line = saved_ch;
+                                break;
+                            
+                            }
+                            
+                            line = skip_whitespace (line + 1);
+                            
+                            start_p = line;
+                            saved_ch = get_symbol_name_end (&line);
+                            
+                            vec_push (&proc->args, xstrdup (start_p));
+                            
+                            temp = xmalloc (strlen (name) + 1 + 5 + 5 + 1 + 5 + 8 + 2);
+                            
+                            if (xstrcasecmp (start_p, "byte") == 0 || xstrcasecmp (start_p, "word") == 0) {
+                            
+                                sprintf (temp, "%s %s ptr [bp + %d]", name, start_p, offset);
+                                offset += 2;
+                            
+                            } else if (xstrcasecmp (start_p, "dword") == 0) { 
+                            
+                                sprintf (temp, "%s long ptr [bp + %d]", name, offset);
+                                offset += 4;
+                            
+                            } else if (xstrcasecmp (start_p, "ptr") == 0) { 
+                            
+                                if (machine_dependent_get_bits () == 16) {
+                                
+                                    sprintf (temp, "%s word ptr [bp + %d]", name, offset);
+                                    offset += 2;
+                                
                                 } else {
-                                    offset = 6;
-                                }
                                 
-                                while (!is_end_of_line[(int) *line] && *line == ' ') {
-                                
-                                    line = skip_whitespace (line);
-                                    
-                                    if (!isalpha ((int) *line)) {
-                                        break;
-                                    }
-                                    
-                                    start_p = line;
-                                    saved_ch = get_symbol_name_end (&line);
-                                    
-                                    reg = xstrdup (start_p);
-                                    vec_push (&proc->regs, reg);
-                                    
-                                    *line = saved_ch;
-                                
-                                }
-                                
-                                while (!is_end_of_line[(int) *line] && *line == ',') {
-                                
-                                    line = skip_whitespace (line + 1);
-                                    
-                                    start_p = line;
-                                    saved_ch = get_symbol_name_end (&line);
-                                    
-                                    if (!isalnum (*start_p)) {
-                                    
-                                        *line = saved_ch;
-                                        break;
-                                    
-                                    }
-                                    
-                                    vec_push (&proc->args, xstrdup (start_p));
-                                    
-                                    temp = xmalloc (strlen (start_p) + 6 + 6);
-                                    sprintf (temp, "%s [bp + %d]", start_p, offset);
-                                    
-                                    if (saved_ch != ':') {
-                                    
-                                        free (temp);
-                                        
-                                        *line = saved_ch;
-                                        break;
-                                    
-                                    }
-                                    
-                                    handler_define (&temp);
-                                    line++;
-                                    
-                                    start_p = line;
-                                    saved_ch = get_symbol_name_end (&line);
-                                    
-                                    if (xstrcasecmp (start_p, "byte") == 0 || xstrcasecmp (start_p, "word") == 0) {
-                                        offset += 2;
-                                    } else if (xstrcasecmp (start_p, "dword") == 0) { 
-                                        offset += 4;
-                                    } else if (xstrcasecmp (start_p, "ptr") == 0) { 
-                                        offset += (machine_dependent_get_bits () == 16 ? 2 : 4);
-                                    } else {
-                                    
-                                        report (REPORT_ERROR, "unsupported argument type");
-                                        
-                                        *line = saved_ch;
-                                        break;
-                                    
-                                    }
-                                    
-                                    *line = saved_ch;
-                                    line = skip_whitespace (line);
-                                
-                                }
-                                
-                                demand_empty_rest_of_line (&line);
-                                
-                                if (proc->args.length > 0) {
-                                
-                                    char *temp = xmalloc (8);
-                                    sprintf (temp, "push bp");
-                                    
-                                    machine_dependent_assemble_line (temp);
-                                    
-                                    temp = xmalloc (10);
-                                    sprintf (temp, "mov bp, sp");
-                                    
-                                    machine_dependent_assemble_line (temp);
-                                
-                                }
-                                
-                                for (i = 0; i < proc->regs.length; ++i) {
-                                
-                                    char *temp;
-                                    reg = proc->regs.data[i];
-                                    
-                                    temp = xmalloc (4 + 1 + strlen (reg) + 1); 
-                                    sprintf (temp, "push %s", reg);
-                                    
-                                    machine_dependent_assemble_line (temp);
+                                    sprintf (temp, "%s long ptr [bp + %d]", name, offset);
+                                    offset += 4;
                                 
                                 }
                             
                             } else {
+                            
+                                report (REPORT_ERROR, "unsupported argument type");
+                                
                                 *line = saved_ch;
+                                break;
+                            
                             }
-                        
-                        } else {
+                            
+                            handler_define (&temp);
+                            
                             *line = saved_ch;
+                            line = skip_whitespace (line);
+                        
+                        } while (!is_end_of_line[(int) *line] && *line == ',');
+                        
+                        demand_empty_rest_of_line (&line);
+                        
+                        if (proc->args.length > 0) {
+                        
+                            char *temp = xmalloc (8);
+                            sprintf (temp, "push bp");
+                            
+                            machine_dependent_assemble_line (temp);
+                            
+                            temp = xmalloc (10);
+                            sprintf (temp, "mov bp, sp");
+                            
+                            machine_dependent_assemble_line (temp);
+                        
+                        }
+                        
+                        for (i = 0; i < proc->regs.length; ++i) {
+                        
+                            char *temp, *reg = proc->regs.data[i];
+                            
+                            temp = xmalloc (4 + 1 + strlen (reg) + 1); 
+                            sprintf (temp, "push %s", reg);
+                            
+                            machine_dependent_assemble_line (temp);
+                        
                         }
                         
                         vec_push (&state->procs, (void *) proc);
@@ -1173,10 +1189,7 @@ int process_file (const char *fname) {
                             if (strcmp (start_p, proc->name)) {
                                 report (REPORT_ERROR, "procedure name does not match");
                             } else {
-                            
-                                free (state->procs.data[last]);
                                 state->procs.length = last;
-                            
                             }
                         
                         }
@@ -1236,7 +1249,6 @@ int process_file (const char *fname) {
                             sprintf (temp, "pop bp");
                             
                             machine_dependent_assemble_line (temp);
-                            
                             proc->args.length = 0;
                         
                         }
