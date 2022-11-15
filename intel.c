@@ -433,6 +433,7 @@ static struct template template_table[] = {
     
     { "ret", 0, 0xC3, NONE, WL_SUF | DEFAULT_SIZE, { 0, 0, 0 }, 0 },
     { "ret", 1, 0xC2, NONE, WL_SUF | DEFAULT_SIZE, { IMM16, 0, 0 }, 0 },
+    { "retn", 0, 0xC3, NONE, WL_SUF | DEFAULT_SIZE, { 0, 0, 0 }, 0 },
     { "retf", 0, 0xCB, NONE, WL_SUF | DEFAULT_SIZE, { 0, 0, 0 }, 0 },
     { "lret", 0, 0xCB, NONE, WL_SUF | DEFAULT_SIZE, { 0, 0, 0 }, 0 },
     { "lret", 1, 0xCA, NONE, WL_SUF | DEFAULT_SIZE, { IMM16, 0, 0 }, 0 },
@@ -4032,18 +4033,8 @@ char *machine_dependent_assemble_line (char *line) {
     
     if (current_templates[0].start->base_opcode == 0xC0 && instruction.operands == 2) {
     
-        int operand;
-        
-        for (operand = 0; operand < instruction.operands; operand++) {
-    
-            if (instruction.types[operand] & IMM) {
-        
-                if (instruction.imms[operand]->type == EXPR_TYPE_CONSTANT && instruction.imms[operand]->add_number == 1) {
-                    instruction.operands--;
-                }
-        
-            }
-        
+        if (instruction.imms[1]->type == EXPR_TYPE_CONSTANT && instruction.imms[1]->add_number) {
+            instruction.operands--;
         }
     
     }

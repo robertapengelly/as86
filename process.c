@@ -1088,8 +1088,6 @@ int process_file (const char *fname) {
                             
                             if (saved_ch != ':') {
                             
-                                free (temp);
-                                
                                 *line = saved_ch;
                                 break;
                             
@@ -1138,6 +1136,7 @@ int process_file (const char *fname) {
                             }
                             
                             handler_define (&temp);
+                            free (temp);
                             
                             *line = saved_ch;
                             line = skip_whitespace (line);
@@ -1299,8 +1298,8 @@ int process_file (const char *fname) {
     
     for (i = 0; i < state->procs.length; ++i) {
     
-        char *name = (char *) state->procs.data[i];
-        report (REPORT_ERROR, "procedure %s is not closed", name);
+        struct proc *proc = (struct proc *) state->procs.data[i];
+        report (REPORT_ERROR, "procedure %s is not closed", proc->name);
     
     }
     
