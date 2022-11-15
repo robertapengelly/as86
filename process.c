@@ -1071,6 +1071,8 @@ int process_file (const char *fname) {
                             offset = 6;
                         }
                         
+                        line = skip_whitespace (line);
+                        
                         do {
                         
                             if (*line == ',') { line++; }
@@ -1097,8 +1099,6 @@ int process_file (const char *fname) {
                             
                             start_p = line;
                             saved_ch = get_symbol_name_end (&line);
-                            
-                            vec_push (&proc->args, xstrdup (start_p));
                             
                             temp = xmalloc (strlen (name) + 1 + 5 + 5 + 1 + 5 + 8 + 2);
                             
@@ -1135,8 +1135,10 @@ int process_file (const char *fname) {
                             
                             }
                             
+                            vec_push (&proc->args, xstrdup (start_p));
+                            
                             handler_define (&temp);
-                            free (temp);
+                            /*free (temp);*/
                             
                             *line = saved_ch;
                             line = skip_whitespace (line);
