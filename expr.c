@@ -204,7 +204,7 @@ static section_t operand (char **pp, struct expr *expr, enum expr_mode expr_mode
             
             if (tolower ((int) *temp) == 'h') {
             
-                *temp++ = ' ';
+                memcpy (temp, temp + 1, strlen (temp));
                 goto is_hex;
             
             }
@@ -225,7 +225,7 @@ static section_t operand (char **pp, struct expr *expr, enum expr_mode expr_mode
             
             if (tolower ((int) *temp) == 'h') {
             
-                *temp++ = ' ';
+                memcpy (temp, temp + 1, strlen (temp));
                 goto is_hex;
             
             }
