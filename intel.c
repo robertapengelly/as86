@@ -4031,7 +4031,7 @@ char *machine_dependent_assemble_line (char *line) {
         goto skip;
     }
     
-    if (current_templates[0].start->base_opcode == 0xC0 && instruction.operands == 2) {
+    if (current_templates[0].start->base_opcode == 0xC0 && instruction.operands == 2 && instruction.types[1] & IMM) {
     
         if (instruction.imms[1]->type == EXPR_TYPE_CONSTANT && instruction.imms[1]->add_number) {
             instruction.operands--;
