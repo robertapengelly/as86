@@ -46,7 +46,7 @@ static char *read_character (char *p, unsigned long *c) {
             *c = '\'';
             p++;
         
-        } else if (*p == '\"') {
+        } else if (*p == '"') {
         
             *c = '"';
             p++;
@@ -163,6 +163,8 @@ static section_t operand (char **pp, struct expr *expr, enum expr_mode expr_mode
     
     struct hashtab_name *key;
     char *entry;
+    
+    int double_quotes = 0;
     
     expr->type = EXPR_TYPE_INVALID;
     expr->add_symbol = NULL;
@@ -375,11 +377,15 @@ static section_t operand (char **pp, struct expr *expr, enum expr_mode expr_mode
             
             break;
         
+        case '"':
+        
+            double_quotes = 1;
+        
         case '\'':
         
             (*pp) = read_character (++(*pp), &expr->add_number);
             
-            if (*(*pp) == '\'') {
+            if ((double_quotes && *(*pp) == '"') || *(*pp) == '\'') {
                 (*pp)++;
             }
             

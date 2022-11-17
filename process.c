@@ -55,19 +55,7 @@ char is_end_of_line[256] = {
 static char *find_end_of_line (char *line) {
 
     while (!is_end_of_line[(int) *line]) {
-    
-        if (line++[0] == '\"') {
-        
-            while (*line && *line != '\"') {
-            
-                if (line++[0] == '\\' && *line) {
-                    ++(line);
-                }
-            
-            }
-        
-        }
-    
+        ++(line);
     }
     
     return line;
@@ -93,7 +81,7 @@ char get_symbol_name_end (char **pp) {
 
 }
 
-int read_and_append_char_in_ascii (char **pp, int size) {
+int read_and_append_char_in_ascii (char **pp, int double_quotes, int size) {
 
     char ch;
     int i;
@@ -103,6 +91,12 @@ int read_and_append_char_in_ascii (char **pp, int size) {
     switch (ch = *((*pp)++)) {
     
         case '"':
+        
+            if (double_quotes) {
+                return 1;
+            }
+        
+        case '\'':
         
             return 1;
         
@@ -172,6 +166,7 @@ int read_and_append_char_in_ascii (char **pp, int size) {
                 
                 case '\\':
                 case '"':
+                case '\'':
                 
                     for (i = 0; i < size; i++) {
                         frag_append_1_char ((ch >> (8 * i)) & 0xff);
@@ -538,15 +533,21 @@ static void handler_include (char **pp) {
     *pp = skip_whitespace (*pp);
     tmp = *pp;
     
-    if (**pp == '"') {
+    if (**pp == '"' || **pp == '\'') {
     
         char ch;
+        int double_quotes = (**pp == '"');
         
         while ((ch = *++*pp)) {
         
-            if (ch == '"') {
+            if (ch == '"' && double_quotes) {
             
-                ++*pp;
+                ++(*pp);
+                break;
+            
+            } else if (ch == '\'') {
+            
+                ++(*pp);
                 break;
             
             }
@@ -556,7 +557,14 @@ static void handler_include (char **pp) {
         
         }
         
-        if (ch != '"') {
+        if (double_quotes && ch != '"') {
+        
+            report (REPORT_ERROR, "unterminated string");
+            
+            ignore_rest_of_line (pp);
+            return;
+        
+        } else if (ch != '\'') {
         
             report (REPORT_ERROR, "unterminated string");
             

@@ -16,7 +16,7 @@
 #include    "types.h"
 
 extern char get_symbol_name_end (char **pp);
-extern int read_and_append_char_in_ascii (char **pp, int size);
+extern int read_and_append_char_in_ascii (char **pp, int double_quotes, int size);
 
 extern void demand_empty_rest_of_line (char **pp);
 extern void ignore_rest_of_line (char **pp);
@@ -208,11 +208,11 @@ static void handler_constant (char **pp, int size, int is_rva) {
     
     do {
     
-        if (**pp == '"') {
+        if (**pp == '"' || **pp == '\'') {
         
             ++(*pp);
             
-            while (read_and_append_char_in_ascii (pp, size) == 0) {
+            while (read_and_append_char_in_ascii (pp, **pp == '"', size) == 0) {
                 /* Nothing to do */
             }
             
@@ -425,11 +425,11 @@ static void handler_align_bytes (char **pp) {
 
 static void handler_ascii (char **pp) {
 
-    char ch;
+    char ch = *((*pp)++);
     
-    if ((ch = *((*pp)++)) == '"') {
+    if (ch == '"' || ch == '\'') {
     
-        while (!read_and_append_char_in_ascii (pp, 1)) {
+        while (!read_and_append_char_in_ascii (pp, ch == '"', 1)) {
             /* Nothing to do */
         }
     

@@ -28,7 +28,7 @@ int load_line (char **line_p, char **line_end_p, char **real_line_p, size_t *rea
     
     unsigned long newlines = 0;
     
-    int in_block_comment = 0, in_escape = 0, in_line_comment = 0, in_quote = 0;
+    int in_block_comment = 0, in_escape = 0, in_line_comment = 0, in_double_quote = 0, in_single_quote = 0;
     int possible_start_or_end_of_comment = 0, skipping_spaces = 0;
     
     if (ll_data->end_of_prev_real_line) {
@@ -136,12 +136,14 @@ int load_line (char **line_p, char **line_end_p, char **real_line_p, size_t *rea
         
             ll_data->line[pos_in_line] = ll_data->real_line[pos_in_real_line++];
             
-            if (in_quote) {
+            if (in_double_quote || in_single_quote) {
             
                 if (in_escape) {
                     in_escape = 0;
-                } else if (ll_data->line[pos_in_line] == '"') {
-                    in_quote = 0;
+                } else if (in_double_quote && ll_data->line[pos_in_line] == '"') {
+                    in_double_quote = 0;
+                } else if (in_single_quote && ll_data->line[pos_in_line] == '\'') {
+                    in_single_quote = 0;
                 } else if (ll_data->line[pos_in_line] == '\\') {
                     in_escape = 1;
                 }
@@ -222,8 +224,10 @@ int load_line (char **line_p, char **line_end_p, char **real_line_p, size_t *rea
                     ++newlines;
                     continue;
                 
-                } else if (ll_data->line[pos_in_line] == '\"') {
-                    in_quote = 1;
+                } else if (ll_data->line[pos_in_line] == '"') {
+                    in_double_quote = 1;
+                } else if (ll_data->line[pos_in_line] == '\'') {
+                    in_single_quote = 1;
                 } else if (ll_data->line[pos_in_line] == '/') {
                     possible_start_or_end_of_comment = 1;
                 }
