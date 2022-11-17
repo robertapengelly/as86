@@ -3081,6 +3081,11 @@ static int intel_parse_operand (char *operand_string) {
             
             case EXPR_TYPE_FWORD_PTR:
             
+                /* lgdt, lidt, sgdt, sidt accept fword ptr but ignore it. */
+                if ((current_templates->name[0] == 'l' || current_templates->name[0] == 's') && (current_templates->name[1] == 'g' || current_templates->name[1] == 'i') && current_templates->name[2] == 'd' && current_templates->name[3] == 't' && current_templates->name[4] == '\0') {
+                    break;
+                }
+                
                 if (!intel_float_suffix_translation (current_templates->name)) {
                 
                     if (bits == 16) {
