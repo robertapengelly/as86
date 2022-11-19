@@ -95,10 +95,24 @@ int read_and_append_char_in_ascii (char **pp, int double_quotes, int size) {
             if (double_quotes) {
                 return 1;
             }
+            
+            for (i = 0; i < size; i++) {
+                frag_append_1_char ((ch >> (8 * i)) & 0xff);
+            }
+            
+            break;
         
         case '\'':
         
-            return 1;
+            if (!double_quotes) {
+                return 1;
+            }
+            
+            for (i = 0; i < size; i++) {
+                frag_append_1_char ((ch >> (8 * i)) & 0xff);
+            }
+            
+            break;
         
         case '\0':
         

@@ -210,9 +210,9 @@ static void handler_constant (char **pp, int size, int is_rva) {
     
         if (**pp == '"' || **pp == '\'') {
         
-            ++(*pp);
+            char ch = *((*pp)++);
             
-            while (read_and_append_char_in_ascii (pp, **pp == '"', size) == 0) {
+            while (read_and_append_char_in_ascii (pp, ch == '"', size) == 0) {
                 /* Nothing to do */
             }
             

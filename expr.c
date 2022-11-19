@@ -380,6 +380,7 @@ static section_t operand (char **pp, struct expr *expr, enum expr_mode expr_mode
         case '"':
         
             double_quotes = 1;
+            /* fall through */
         
         case '\'':
         
