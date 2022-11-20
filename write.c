@@ -409,7 +409,7 @@ static void adjust_reloc_symbols_of_section (section_t section) {
 
 }
 
-static unsigned long fixup_section (section_t section, value_t val) {
+static unsigned long fixup_section (section_t section) {
 
     struct fixup *fixup;
     section_t add_symbol_section;
@@ -449,8 +449,6 @@ static unsigned long fixup_section (section_t section, value_t val) {
             }
         
         }
-        
-        add_number -= val;
         
         if (fixup->pcrel) {
             add_number -= machine_dependent_pcrel_from (fixup);
@@ -495,6 +493,8 @@ void write_object_file (struct object_format *obj_fmt) {
                 if (strcmp (symbol->name, state->end_sym) == 0) {
                 
                     val = symbol_get_value (symbol);
+                    
+                    symbols = symbol;
                     break;
                 
                 }
@@ -508,7 +508,6 @@ void write_object_file (struct object_format *obj_fmt) {
             struct frag *frag;
             int found_frag = 0;
             
-            address_t addr = 0;
             section_set (symbol->section);
             
             for (frag = current_frag_chain->first_frag; frag; frag = frag->next) {
@@ -520,11 +519,9 @@ void write_object_file (struct object_format *obj_fmt) {
                 
                 }
                 
-                if (frag->address >= val) {
+                if (frag->address + frag->size > val) {
                 
-                    /*report (REPORT_INTERNAL_ERROR, "%ld, %ld, %ld", frag->address, frag->fixed_size, val);*/
-                    addr = frag->address;
-                    val -= addr;
+                    val -= frag->address;
                     
                     memcpy (frag->buf, frag->buf + val, frag->fixed_size - val);
                     frag->fixed_size -= val;
@@ -539,7 +536,6 @@ void write_object_file (struct object_format *obj_fmt) {
             }
             
             adjust_listings (val);
-            val += addr;
         
         }
     
@@ -560,13 +556,7 @@ void write_object_file (struct object_format *obj_fmt) {
     }
     
     for (section = sections; section; section = section_get_next_section (section)) {
-    
-        if (symbol && symbol->section == section) {
-            fixup_section (section, val);
-        } else {
-            fixup_section (section, 0);
-        }
-    
+        fixup_section (section);
     }
     
     if (obj_fmt->write_object) {
