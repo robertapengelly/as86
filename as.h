@@ -23,7 +23,7 @@ struct as_state {
     const char *format, *listing, *outfile;
     int nowarn, model;
     
-    const char *sym_start;
+    const char *sym_start, *end_sym;
     struct vector procs;
 
 };

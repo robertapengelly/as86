@@ -133,6 +133,20 @@ void add_listing_message (char *message, const char *filename, unsigned long lin
 
 }
 
+void adjust_listings (value_t val) {
+
+    struct ll *ll;
+    
+    for (ll = first_line; ll; ll = ll->next) {
+    
+        if (ll->where >= val) {
+            ll->where -= val;
+        }
+    
+    }
+
+}
+
 void generate_listing (void) {
 
     struct ll *ll;

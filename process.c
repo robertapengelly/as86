@@ -783,7 +783,30 @@ int process_file (const char *fname) {
             
             }
             
-            if (xstrcasecmp (start_p, ".stack") == 0 || xstrcasecmp (start_p, "end") == 0 || xstrcasecmp (start_p, "extern") == 0 || xstrcasecmp (start_p, "extrn") == 0) {
+            if (xstrcasecmp (start_p, "end") == 0) {
+            
+                char *sym;
+                *line = saved_ch;
+                
+                line = skip_whitespace (line);
+                
+                if (!is_end_of_line[(int) *line]) {
+                
+                    sym = line;
+                    
+                    saved_ch = get_symbol_name_end (&line);
+                    state->end_sym = xstrdup (sym);
+                    
+                    *line = saved_ch;
+                
+                }
+                
+                demand_empty_rest_of_line (&line);
+                continue;
+            
+            }
+            
+            if (xstrcasecmp (start_p, ".stack") == 0 || xstrcasecmp (start_p, "extern") == 0 || xstrcasecmp (start_p, "extrn") == 0) {
             
                 report (REPORT_WARNING, "%s unimplemented; ignored", start_p);
                 *line = saved_ch;

@@ -9,6 +9,7 @@
 #include    "frag.h"
 #include    "intel.h"
 #include    "lib.h"
+#include    "listing.h"
 #include    "report.h"
 #include    "section.h"
 #include    "symbol.h"
@@ -408,7 +409,7 @@ static void adjust_reloc_symbols_of_section (section_t section) {
 
 }
 
-static unsigned long fixup_section (section_t section) {
+static unsigned long fixup_section (section_t section, value_t val) {
 
     struct fixup *fixup;
     section_t add_symbol_section;
@@ -449,6 +450,8 @@ static unsigned long fixup_section (section_t section) {
         
         }
         
+        add_number -= val;
+        
         if (fixup->pcrel) {
             add_number -= machine_dependent_pcrel_from (fixup);
         }
@@ -469,6 +472,7 @@ void write_object_file (struct object_format *obj_fmt) {
 
     struct symbol *symbol;
     section_t section;
+    value_t val = 0;
     
     sections_chain_subsection_frags ();
     
@@ -478,6 +482,67 @@ void write_object_file (struct object_format *obj_fmt) {
     
     for (section = sections; section; section = section_get_next_section (section)) {
         finish_frags_after_relaxation (section);
+    }
+    
+    if (state->end_sym) {
+    
+        struct symbol *symbol;
+        
+        for (symbol = symbols; symbol; symbol = symbol->next) {
+        
+            if (!symbol_is_undefined (symbol) && symbol_get_section (symbol) != absolute_section) {
+            
+                if (strcmp (symbol->name, state->end_sym) == 0) {
+                
+                    val = symbol_get_value (symbol);
+                    break;
+                
+                }
+            
+            }
+        
+        }
+        
+        if (symbol) {
+        
+            struct frag *frag;
+            int found_frag = 0;
+            
+            address_t addr = 0;
+            section_set (symbol->section);
+            
+            for (frag = current_frag_chain->first_frag; frag; frag = frag->next) {
+            
+                if (found_frag) {
+                
+                    frag->address -= val;
+                    continue;
+                
+                }
+                
+                if (frag->address >= val) {
+                
+                    /*report (REPORT_INTERNAL_ERROR, "%ld, %ld, %ld", frag->address, frag->fixed_size, val);*/
+                    addr = frag->address;
+                    val -= addr;
+                    
+                    memcpy (frag->buf, frag->buf + val, frag->fixed_size - val);
+                    frag->fixed_size -= val;
+                    
+                    found_frag = 1;
+                    
+                    current_frag_chain->first_frag = frag;
+                    continue;
+                
+                }
+            
+            }
+            
+            adjust_listings (val);
+            val += addr;
+        
+        }
+    
     }
     
     if (obj_fmt->adjust_code) {
@@ -495,7 +560,13 @@ void write_object_file (struct object_format *obj_fmt) {
     }
     
     for (section = sections; section; section = section_get_next_section (section)) {
-        fixup_section (section);
+    
+        if (symbol && symbol->section == section) {
+            fixup_section (section, val);
+        } else {
+            fixup_section (section, 0);
+        }
+    
     }
     
     if (obj_fmt->write_object) {
