@@ -534,8 +534,6 @@ void write_object_file (struct object_format *obj_fmt) {
                 }
             
             }
-            
-            adjust_listings (val);
         
         }
     

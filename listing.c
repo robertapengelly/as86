@@ -175,7 +175,13 @@ void generate_listing (void) {
         if (ll->frag == NULL) {
             size = 0;
         } else if (ll->variant_frag) {
+        
             size = ll->frag->fixed_size - ll->where;
+            
+            if (ll->frag->fixed_size < ll->where) {
+                size = 0;
+            }
+        
         } else {
             size = ll->size;
         }
