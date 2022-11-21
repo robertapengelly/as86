@@ -825,7 +825,7 @@ int process_file (const char *fname) {
                 
                     line++;
                     
-                    if (*(line + 1) == ' ') {
+                    if (*line == ' ') {
                         continue;
                     }
                 
