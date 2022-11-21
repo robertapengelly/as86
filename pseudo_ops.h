@@ -12,6 +12,7 @@ struct pseudo_op {
 };
 
 struct pseudo_op *find_pseudo_op (const char *name);
+int is_data_pseudo_op (const char *name);
 
 void add_pseudo_op (struct pseudo_op *poe);
 void handler_equ (char **pp, char *name);

@@ -4,16 +4,20 @@
 #include    <stddef.h>
 #include    <stdlib.h>
 
+#include    "as.h"
 #include    "expr.h"
 #include    "fixup.h"
 #include    "frag.h"
 #include    "hashtab.h"
+#include    "macro.h"
 #include    "lib.h"
 #include    "pseudo_ops.h"
 #include    "report.h"
 #include    "section.h"
 #include    "symbol.h"
 #include    "types.h"
+
+extern const char is_end_of_line[];
 
 extern char get_symbol_name_end (char **pp);
 extern int read_and_append_char_in_ascii (char **pp, int double_quotes, int size);
@@ -419,6 +423,8 @@ static void handler_reserve (char **pp, int size) {
 }
 
 
+extern void handler_include (char **pp);
+
 static void handler_align_bytes (char **pp) {
     handler_align (pp, 1);
 }
@@ -448,6 +454,24 @@ static void handler_asciz (char **pp) {
 
 static void handler_byte (char **pp) {
     handler_constant (pp, 1, 0);
+}
+
+static void handler_end (char **pp) {
+
+    *pp = skip_whitespace (*pp);
+    
+    if (!is_end_of_line[(int) **pp]) {
+    
+        char *sym = *pp;
+        char saved_ch = get_symbol_name_end (pp);
+        
+        state->end_sym = xstrdup (sym);
+        **pp = saved_ch;
+    
+    }
+    
+    demand_empty_rest_of_line (pp);
+
 }
 
 static void handler_global (char **pp) {
@@ -495,6 +519,86 @@ static void handler_global (char **pp) {
 
 static void handler_long (char **pp) {
     handler_constant (pp, 4, 0);
+}
+
+static void handler_model (char **pp) {
+
+    char saved_ch, *model, *lang;
+    
+    model = (*pp = skip_whitespace (*pp));
+    saved_ch = get_symbol_name_end (pp);
+    
+    if (xstrcasecmp (model, "tiny") == 0) {
+        state->model = 1;
+    } else if (xstrcasecmp (model, "small") == 0) {
+        state->model = 2;
+    } else if (xstrcasecmp (model, "medium") == 0) {
+        state->model = 4;
+    } else if (xstrcasecmp (model, "large") == 0) {
+        state->model = 5;
+    } else {
+    
+        struct hashtab_name *key;
+        char *entry;
+        
+        if ((key = hashtab_alloc_name (model)) != NULL) {
+        
+            if ((entry = (char *) hashtab_get (&hashtab_macros, key)) != NULL) {
+            
+                if (xstrcasecmp (entry, "tiny") == 0) {
+                
+                    state->model = 1;
+                    goto got_model;
+                
+                } else if (xstrcasecmp (entry, "small") == 0) {
+                
+                    state->model = 2;
+                    goto got_model;
+                
+                } else if (xstrcasecmp (entry, "medium") == 0) {
+                
+                    state->model = 4;
+                    goto got_model;
+                
+                } else if (xstrcasecmp (entry, "large") == 0) {
+                
+                    state->model = 5;
+                    goto got_model;
+                
+                }
+            
+            }
+        
+        }
+        
+        report (REPORT_ERROR, "unsuppored or invalid model specified");
+    
+    }
+    
+got_model:
+    
+    **pp = saved_ch;
+    *pp = skip_whitespace (*pp);
+    
+    if (**pp == ',') {
+    
+        *pp = skip_whitespace (*pp + 1);
+        
+        lang = *pp;
+        saved_ch = get_symbol_name_end (pp);
+        
+        if (xstrcasecmp (lang, "c") == 0) {
+            state->sym_start = "_";
+        } else {
+            report (REPORT_ERROR, "unsuppored or invalid model specified");
+        }
+        
+        **pp = saved_ch;
+    
+    }
+    
+    demand_empty_rest_of_line (pp);
+
 }
 
 static void handler_org (char **pp) {
@@ -615,27 +719,44 @@ static void handler_word (char **pp) {
 }
 
 
+static struct pseudo_op data_pseudo_ops[] = {
+
+    { ".byte",      handler_byte        },
+    { ".long",      handler_long        },
+    { ".word",      handler_word        },
+    
+    { "db",         handler_byte        },
+    { "dd",         handler_long        },
+    { "dw",         handler_word        },
+    
+    { NULL,         NULL                }
+
+};
+
 static struct pseudo_op pseudo_ops[] = {
 
     { ".align",     handler_align_bytes },
     { ".ascii",     handler_ascii       },
     { ".asciz",     handler_asciz       },
-    { ".byte",      handler_byte        },
     { ".code",      handler_text        },
     { ".data",      handler_data        },
+    { ".define",    handler_define      },
     { ".global",    handler_global      },
     { ".globl",     handler_global      },
-    { ".long",      handler_long        },
+    { ".include",   handler_include     },
+    { ".model",     handler_model       },
     { ".org",       handler_org         },
     { ".text",      handler_text        },
-    { ".word",      handler_word        },
     { ".space",     handler_space       },
     
+    { "%define",    handler_define      },
+    { "%incude",    handler_include     },
+    
     { "align",      handler_align_bytes },
-    { "db",         handler_byte        },
-    { "dd",         handler_long        },
-    { "dw",         handler_word        },
+    { "define",     handler_define      },
+    { "end",        handler_end         },
     { "global",     handler_global      },
+    { "include",    handler_include     },
     { "org",        handler_org         },
     { "public",     handler_global      },
     { "resb",       handler_resb        },
@@ -646,6 +767,7 @@ static struct pseudo_op pseudo_ops[] = {
 
 };
 
+static struct hashtab data_pseudo_ops_hashtab = { 0 };
 static struct hashtab pseudo_ops_hashtab = { 0 };
 
 struct pseudo_op *find_pseudo_op (const char *name) {
@@ -666,12 +788,41 @@ struct pseudo_op *find_pseudo_op (const char *name) {
     
     }
     
-    poe = hashtab_get (&pseudo_ops_hashtab, key);
+    if ((poe = hashtab_get (&pseudo_ops_hashtab, key)) == NULL) {
+        poe = hashtab_get (&data_pseudo_ops_hashtab, key);
+    }
     
     free (key);
     free (p);
     
     return poe;
+
+}
+
+int is_data_pseudo_op (const char *name) {
+
+    char *p = to_lower (name);
+    
+    struct hashtab_name *key;
+    int ret = 0;
+    
+    if (p == NULL) {
+        return ret;
+    }
+    
+    if ((key = hashtab_alloc_name (p)) == NULL) {
+    
+        free (p);
+        return ret;
+    
+    }
+    
+    ret = (hashtab_get (&data_pseudo_ops_hashtab, key) != NULL);
+    
+    free (key);
+    free (p);
+    
+    return ret;
 
 }
 
@@ -719,10 +870,31 @@ void handler_equ (char **pp, char *name) {
 
 void pseudo_ops_init (void) {
 
+    struct hashtab_name *key;
     struct pseudo_op *poe;
     
     for (poe = pseudo_ops; poe->name; ++poe) {
         add_pseudo_op (poe);
+    }
+    
+    for (poe = data_pseudo_ops; poe->name; ++poe) {
+    
+        if ((key = hashtab_alloc_name (poe->name)) != NULL) {
+        
+            if (hashtab_get (&data_pseudo_ops_hashtab, key) != NULL) {
+            
+                report_at (NULL, 0, REPORT_ERROR, "pseudo op %s already exists", poe->name);
+                free (key);
+            
+            } else if (hashtab_put (&data_pseudo_ops_hashtab, key, poe) < 0) {
+            
+                report_at (NULL, 0, REPORT_ERROR, "failed to add pseudo op %s", poe->name);
+                free (key);
+            
+            }
+        
+        }
+    
     }
 
 }

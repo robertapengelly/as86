@@ -30,7 +30,7 @@ char lex_table[256] = {
 
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0,                             /* SPACE!"#$%&'()*+,-./ */
+    0, 0, 0, 0, 3, 2, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0,                             /* SPACE!"#$%&'()*+,-./ */
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1,                             /* 0123456789:;<=>?     */
     3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,                             /* @ABCDEFGHIJKLMNO     */
     3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 0, 0, 0, 0, 3,                             /* #PQRSTUVWXYZ[\]^_    */
@@ -534,7 +534,7 @@ static int handler_endif (char **pp) {
 }
 
 
-static void handler_include (char **pp) {
+void handler_include (char **pp) {
 
     char *orig_ilp;
     
@@ -702,130 +702,6 @@ int process_file (const char *fname) {
             
             saved_ch = get_symbol_name_end (&line);
             
-            if (xstrcasecmp (start_p, ".model") == 0) {
-            
-                *line = saved_ch;
-                
-                start_p = (line = skip_whitespace (line));
-                saved_ch = get_symbol_name_end (&line);
-                
-                if (xstrcasecmp (start_p, "tiny") == 0) {
-                    state->model = 1;
-                } else if (xstrcasecmp (start_p, "small") == 0) {
-                    state->model = 2;
-                } else if (xstrcasecmp (start_p, "medium") == 0) {
-                    state->model = 4;
-                } else if (xstrcasecmp (start_p, "large") == 0) {
-                    state->model = 5;
-                } else {
-                
-                    struct hashtab_name *key;
-                    char *entry;
-                    
-                    if ((key = hashtab_alloc_name (start_p)) != NULL) {
-                    
-                        if ((entry = (char *) hashtab_get (&hashtab_macros, key)) != NULL) {
-                        
-                            char *temp = entry;
-                            
-                            if (xstrcasecmp (temp, "tiny") == 0) {
-                            
-                                state->model = 1;
-                                goto got_model;
-                            
-                            } else if (xstrcasecmp (temp, "small") == 0) {
-                            
-                                state->model = 2;
-                                goto got_model;
-                            
-                            } else if (xstrcasecmp (temp, "medium") == 0) {
-                            
-                                state->model = 4;
-                                goto got_model;
-                            
-                            } else if (xstrcasecmp (temp, "large") == 0) {
-                            
-                                state->model = 5;
-                                goto got_model;
-                            
-                            }
-                        
-                        }
-                    
-                    }
-                    
-                    report (REPORT_ERROR, "unsuppored or invalid model specified");
-                
-                }
-                
-            got_model:
-                
-                *line = saved_ch;
-                line = skip_whitespace (line);
-                
-                if (*line == ',') {
-                
-                    line = skip_whitespace (line + 1);
-                    
-                    start_p = line;
-                    saved_ch = get_symbol_name_end (&line);
-                    
-                    if (xstrcasecmp (start_p, "c") == 0) {
-                        state->sym_start = "_";
-                    }
-                    
-                    *line = saved_ch;
-                
-                }
-                
-                demand_empty_rest_of_line (&line);
-                continue;
-            
-            }
-            
-            if (xstrcasecmp (start_p, "end") == 0) {
-            
-                char *sym;
-                *line = saved_ch;
-                
-                line = skip_whitespace (line);
-                
-                if (!is_end_of_line[(int) *line]) {
-                
-                    sym = line;
-                    
-                    saved_ch = get_symbol_name_end (&line);
-                    state->end_sym = xstrdup (sym);
-                    
-                    *line = saved_ch;
-                
-                }
-                
-                demand_empty_rest_of_line (&line);
-                continue;
-            
-            }
-            
-            if (xstrcasecmp (start_p, ".stack") == 0 || xstrcasecmp (start_p, "extern") == 0 || xstrcasecmp (start_p, "extrn") == 0) {
-            
-                report (REPORT_WARNING, "%s unimplemented; ignored", start_p);
-                *line = saved_ch;
-                
-                ignore_rest_of_line (&line);
-                continue;
-            
-            }
-            
-            if (xstrcasecmp (start_p, "proc") == 0 || xstrcasecmp (start_p, "endp") == 0) {
-            
-                report (REPORT_ERROR, "procedure must have a name");
-                *line = saved_ch;
-                
-                ignore_rest_of_line (&line);
-                continue;
-            
-            }
-            
             if (xstrcasecmp (start_p, "%if") == 0 || xstrcasecmp (start_p, ".if") == 0 || xstrcasecmp (start_p, "if") == 0) {
             
                 *line = saved_ch;
@@ -918,19 +794,20 @@ int process_file (const char *fname) {
             
             saved_ch = get_symbol_name_end (&line);
             
-            if (xstrcasecmp (start_p, "%define") == 0 || xstrcasecmp (start_p, ".define") == 0 || xstrcasecmp (start_p, "define") == 0) {
+            if (xstrcasecmp (start_p, ".stack") == 0 || xstrcasecmp (start_p, "extern") == 0 || xstrcasecmp (start_p, "extrn") == 0) {
             
+                report (REPORT_WARNING, "%s unimplemented; ignored", start_p);
                 *line = saved_ch;
                 
-                handler_define (&line);
+                ignore_rest_of_line (&line);
                 continue;
             
+            } else if (xstrcasecmp (start_p, "proc") == 0 || xstrcasecmp (start_p, "endp") == 0) {
             
-            } else if (xstrcasecmp (start_p, "%include") == 0 || xstrcasecmp (start_p, ".include") == 0 || xstrcasecmp (start_p, "include") == 0) {
-            
+                report (REPORT_ERROR, "procedure must have a name");
                 *line = saved_ch;
                 
-                handler_include (&line);
+                ignore_rest_of_line (&line);
                 continue;
             
             } else {
@@ -940,16 +817,20 @@ int process_file (const char *fname) {
             
             }
             
-            if (*line == '%' && *(line + 1) == ' ') {
-            
-                line++;
-                continue;
-            
-            }
-            
             if (is_name_beginner ((int) *line)) {
             
                 struct pseudo_op *poe;
+                
+                if (*line == '%') {
+                
+                    line++;
+                    
+                    if (*(line + 1) == ' ') {
+                        continue;
+                    }
+                
+                }
+                
                 saved_ch = get_symbol_name_end (&line);
                 
                 if (xstrcasecmp (start_p, "equ") == 0) {
@@ -1030,7 +911,7 @@ int process_file (const char *fname) {
                     
                     temp_ch = get_symbol_name_end (&temp_line);
                     
-                    if (xstrcasecmp (temp_start_p, "db") == 0 || xstrcasecmp (temp_start_p, "dd") == 0 || xstrcasecmp (temp_start_p, "dw") == 0) {
+                    if (is_data_pseudo_op (temp_start_p)) {
                     
                         symbol_label (start_p);
                         
