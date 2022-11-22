@@ -313,7 +313,8 @@ static struct template template_table[] = {
     { "and", 2, 0x24, NONE, BWL_SUF | W, { ENCODABLEIMM, ACC, 0 }, 0 },
     { "and", 2, 0x80, 4, BWL_SUF | W | MODRM, { ENCODABLEIMM, REG | ANY_MEM, 0 }, 0 },
     
-    { "or", 2, 0x08, NONE, BWL_SUF | D | W | MODRM, { REG, REG | ANY_MEM, 0 }, 0 },
+    { "or", 2, 0x08, NONE, BWL_SUF | D | W | MODRM, { REG, ANY_MEM, 0 }, 0 },
+    { "or", 2, 0x0A, NONE, BWL_SUF | D | W | MODRM, { REG, REG, 0 }, 0 },
     { "or", 2, 0x83, 1, WL_SUF | MODRM, { IMM8S, WORD_REG | ANY_MEM, 0 }, 0 },
     { "or", 2, 0x0C, NONE, BWL_SUF | W, { ENCODABLEIMM, ACC, 0 }, 0 },
     { "or", 2, 0x80, 1, BWL_SUF | W | MODRM, { ENCODABLEIMM, REG | ANY_MEM, 0 }, 0 },
