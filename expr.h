@@ -44,6 +44,7 @@ enum expr_type {
     EXPR_TYPE_MACHINE_DEPENDENT_5,
     EXPR_TYPE_MACHINE_DEPENDENT_6,
     EXPR_TYPE_MACHINE_DEPENDENT_7,
+    EXPR_TYPE_MACHINE_DEPENDENT_8,
     
     /* How many expression types exist. */
     EXPR_TYPE_MAX

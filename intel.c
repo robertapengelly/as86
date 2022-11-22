@@ -92,6 +92,7 @@ static char register_chars_table[256] = { 0 };
 #define     EXPR_TYPE_SHORT             EXPR_TYPE_MACHINE_DEPENDENT_5
 #define     EXPR_TYPE_OFFSET            EXPR_TYPE_MACHINE_DEPENDENT_6
 #define     EXPR_TYPE_FULL_PTR          EXPR_TYPE_MACHINE_DEPENDENT_7
+#define     EXPR_TYPE_NEAR_PTR          EXPR_TYPE_MACHINE_DEPENDENT_8
 
 struct intel_type {
 
@@ -105,6 +106,7 @@ static const struct intel_type intel_types[] = {
 
 #define INTEL_TYPE(name, size) { #name, EXPR_TYPE_##name##_PTR, size }
     
+    INTEL_TYPE (NEAR, 0),
     INTEL_TYPE (BYTE, 1),
     INTEL_TYPE (WORD, 2),
     INTEL_TYPE (DWORD, 4),
@@ -2930,6 +2932,15 @@ static int intel_simplify_expr (struct expr *expr) {
             intel_fold_symbol_into_expr (expr, expr->add_symbol);
             break;
         
+        case EXPR_TYPE_NEAR_PTR:
+        
+            if (!intel_simplify_symbol (expr->add_symbol)) {
+                return 0;
+            }
+            
+            intel_fold_symbol_into_expr (expr, expr->add_symbol);
+            break;
+        
         case EXPR_TYPE_FULL_PTR:
         
             if (symbol_get_value_expression (expr->op_symbol)->type == EXPR_TYPE_REGISTER) {
@@ -3059,9 +3070,16 @@ static int intel_parse_operand (char *operand_string) {
         
             case EXPR_TYPE_BYTE_PTR:
             
-                suffix = BYTE_SUFFIX;
-                break;
+                if (strcmp (current_templates->name, "call")) {
+                
+                    suffix = BYTE_SUFFIX;
+                    break;
+                
+                }
+                
+                /* fall through */
             
+            case EXPR_TYPE_NEAR_PTR:
             case EXPR_TYPE_WORD_PTR:
             
                 if (intel_float_suffix_translation (current_templates->name) == 2) {
@@ -4115,6 +4133,10 @@ char *machine_dependent_assemble_line (char *line) {
                 frag_append_1_char (instruction.prefixes[i]);
             }
         
+        }
+        
+        if (instruction.template.base_opcode == 0xff && state->model >= 4) {
+            frag_append_1_char (0x2E);
         }
         
         if (instruction.template.base_opcode & 0xff00) {
