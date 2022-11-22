@@ -176,7 +176,7 @@ static struct template template_table[] = {
 
     /* Move instructions. */
     { "mov", 2, 0xA0, NONE, BWL_SUF | D | W, { DISP16 | DISP32, ACC, 0 }, 0 },
-    { "mov", 2, 0x88, NONE, BWL_SUF | D | W | MODRM, { REG, REG | ANY_MEM, 0 }, 0 },
+    { "mov", 2, 0x8A, NONE, BWL_SUF | D | W | MODRM, { REG | ANY_MEM, REG, 0 }, 0 },
     { "mov", 2, 0xB0, NONE, BWL_SUF | W | SHORT_FORM, { ENCODABLEIMM, REG8 | REG16 | REG32, 0 }, 0 },
     { "mov", 2, 0xC6, NONE, BWL_SUF | D | W | MODRM, { ENCODABLEIMM, REG | ANY_MEM, 0 }, 0 },
     
@@ -275,7 +275,7 @@ static struct template template_table[] = {
     { "popf", 0, 0x9D, NONE, WL_SUF | DEFAULT_SIZE, { WORD_REG, 0, 0 }, 0 },
     
     /* Arithmetic instructions. */
-    { "add", 2, 0x00, NONE, BWL_SUF | D | W | MODRM, { REG, REG | ANY_MEM, 0 }, 0 },
+    { "add", 2, 0x02, NONE, BWL_SUF | D | W | MODRM, { REG | ANY_MEM, REG, 0 }, 0 },
     { "add", 2, 0x83, 0, WL_SUF | MODRM, { IMM8S, WORD_REG | ANY_MEM, 0 }, 0 },
     { "add", 2, 0x04, NONE, BWL_SUF | W, { ENCODABLEIMM, ACC, 0 }, 0 },
     { "add", 2, 0x80, 0, BWL_SUF | W | MODRM, { ENCODABLEIMM, REG | ANY_MEM, 0 }, 0 },
@@ -316,14 +316,14 @@ static struct template template_table[] = {
     { "or", 2, 0x0C, NONE, BWL_SUF | W, { ENCODABLEIMM, ACC, 0 }, 0 },
     { "or", 2, 0x80, 1, BWL_SUF | W | MODRM, { ENCODABLEIMM, REG | ANY_MEM, 0 }, 0 },
     
-    { "xor", 2, 0x30, NONE, BWL_SUF | D | W | MODRM, { REG, REG | ANY_MEM, 0 }, 0 },
+    { "xor", 2, 0x32, NONE, BWL_SUF | D | W | MODRM, { REG | ANY_MEM, REG, 0 }, 0 },
     { "xor", 2, 0x83, 6, WL_SUF | MODRM, { IMM8S, WORD_REG | ANY_MEM, 0 }, 0 },
     { "xor", 2, 0x34, NONE, BWL_SUF | W, { ENCODABLEIMM, ACC, 0 }, 0 },
     { "xor", 2, 0x80, 6, BWL_SUF | W | MODRM, { ENCODABLEIMM, REG | ANY_MEM, 0 }, 0 },
     
     { "clr", 1, 0x30, NONE, BWL_SUF | W | MODRM | REG_DUPLICATION, { REG, 0, 0 }, 0 },
     
-    { "adc", 2, 0x10, NONE, BWL_SUF | D | W | MODRM, { REG, REG | ANY_MEM, 0 }, 0 },
+    { "adc", 2, 0x12, NONE, BWL_SUF | D | W | MODRM, { REG | ANY_MEM, REG, 0 }, 0 },
     { "adc", 2, 0x83, 2, WL_SUF | MODRM, { IMM8S, WORD_REG | ANY_MEM, 0 }, 0 },
     { "adc", 2, 0x14, NONE, BWL_SUF | W, { ENCODABLEIMM, ACC, 0 }, 0 },
     { "adc", 2, 0x80, 2, BWL_SUF | W | MODRM, { ENCODABLEIMM, REG | ANY_MEM, 0 }, 0 },
