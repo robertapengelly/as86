@@ -431,7 +431,7 @@ static section_t operand (char **pp, struct expr *expr, enum expr_mode expr_mode
                 
                 } else if (strcmp (name, "@DataSize") == 0) {
                 
-                    char *val = (state->model <= 4 ? "0" : "1");
+                    char *val = (state->model == 6 ? "2" : (state->model > 4 ? "1" : "0"));
                     
                     ret_section = read_into (&val, expr, 0, expr_mode);
                     **pp = c;

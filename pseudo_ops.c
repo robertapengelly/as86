@@ -536,6 +536,8 @@ static void handler_model (char **pp) {
         state->model = 4;
     } else if (xstrcasecmp (model, "large") == 0) {
         state->model = 5;
+    } else if (xstrcasecmp (model, "huge") == 0) {
+        state->model = 6;
     } else {
     
         struct hashtab_name *key;
@@ -563,6 +565,11 @@ static void handler_model (char **pp) {
                 } else if (xstrcasecmp (entry, "large") == 0) {
                 
                     state->model = 5;
+                    goto got_model;
+                
+                } else if (xstrcasecmp (entry, "huge") == 0) {
+                
+                    state->model = 6;
                     goto got_model;
                 
                 }
