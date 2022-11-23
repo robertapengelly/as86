@@ -597,7 +597,7 @@ got_model:
         if (xstrcasecmp (lang, "c") == 0) {
             state->sym_start = "_";
         } else {
-            report (REPORT_ERROR, "unsuppored or invalid model specified");
+            report (REPORT_ERROR, "unsuppored or invalid language specified");
         }
         
         **pp = saved_ch;

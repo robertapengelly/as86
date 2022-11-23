@@ -1035,7 +1035,12 @@ int process_file (const char *fname) {
                             
                             } else if (xstrcasecmp (start_p, "dword") == 0) { 
                             
-                                sprintf (temp, "%s %s ptr [bp + %d]", name, start_p, offset);
+                                if (state->sym_start) {
+                                    sprintf (temp, "%s [bp + %d]", name, offset);
+                                } else {
+                                    sprintf (temp, "%s %s ptr [bp + %d]", name, start_p, offset);
+                                }
+                                
                                 offset += 4;
                             
                             } else if (xstrcasecmp (start_p, "ptr") == 0) { 
