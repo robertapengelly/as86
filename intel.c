@@ -2163,7 +2163,13 @@ static struct templates *find_templates (const char *name) {
     struct hashtab_name *key;
     struct templates *templates;
     
-    char *p = to_lower (name);
+    char *p;
+    
+    if (xstrcasecmp (name, "ret") == 0 && state->model >= 4 && state->procs.length > 0) {
+        name = "retf";
+    }
+    
+    p = to_lower (name);
     
     if (p == NULL) {
         return NULL;
@@ -3683,14 +3689,6 @@ static int match_template (void) {
         /* No match was found. */
         report (REPORT_ERROR, "operands invalid for '%s'", current_templates->name);
         return 1;
-    
-    }
-    
-    if (state->model >= 4 && state->procs.length > 0) {
-    
-        if (template->base_opcode == 0xC3) {
-            template += 2;
-        }
     
     }
     
