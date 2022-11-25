@@ -1,6 +1,7 @@
 /******************************************************************************
  * @file            write.c
  *****************************************************************************/
+#include    <stdint.h>
 #include    <stdlib.h>
 #include    <string.h>
 
@@ -19,7 +20,7 @@ static unsigned long relax_align (unsigned long address, unsigned long alignment
 
     unsigned long mask, new_address;
     
-    mask = ~(~((unsigned int) 0) << alignment);
+    mask = ~(~((uint32_t) 0) << alignment);
     new_address = (address + mask) & ~mask;
     
     return new_address - address;

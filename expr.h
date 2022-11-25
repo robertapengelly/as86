@@ -4,6 +4,8 @@
 #ifndef     _EXPR_H
 #define     _EXPR_H
 
+#include    <stdint.h>
+
 enum expr_type {
 
     EXPR_TYPE_INVALID,
@@ -73,7 +75,7 @@ struct expr {
 #define     expression_evaluate_and_read_into(pp, expr)     (read_into ((pp), (expr), 0, expr_mode_evaluate))
 
 section_t current_location (struct expr *expr);
-section_t read_into (char **pp, struct expr *expr, unsigned int rank, enum expr_mode expr_mode);
+section_t read_into (char **pp, struct expr *expr, uint32_t rank, enum expr_mode expr_mode);
 
 symbol_t make_expr_symbol (struct expr *expr);
 
@@ -83,6 +85,6 @@ int resolve_expression (struct expr *expr);
 offset_t absolute_expression_read_into (char **pp, struct expr *expr);
 offset_t get_result_of_absolute_expression (char **pp);
 
-void expr_type_set_rank (enum expr_type expr_type, unsigned int rank);
+void expr_type_set_rank (enum expr_type expr_type, uint32_t rank);
 
 #endif      /* _EXPR_H */

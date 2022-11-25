@@ -4,6 +4,8 @@
 #ifndef     _TYPE_H
 #define     _TYPE_H
 
+#include    <stdint.h>
+
 typedef     struct section              *section_t;
 typedef     signed long                 subsection_t;
 
@@ -19,7 +21,7 @@ typedef enum {
 
 } relax_type_t;
 
-typedef     unsigned int                relax_subtype_t;
+typedef     uint32_t                relax_subtype_t;
 
 typedef enum {
 

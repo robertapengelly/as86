@@ -1,15 +1,16 @@
 /******************************************************************************
  * @file            cstr.c
  *****************************************************************************/
+#include    <stdint.h>
 #include    <stdlib.h>
 #include    <string.h>
 
 #include    "cstr.h"
 #include    "lib.h"
 
-static void cstr_realloc (CString *cstr, int new_size) {
+static void cstr_realloc (CString *cstr, int32_t new_size) {
 
-    int size = cstr->size_allocated;
+    int32_t size = cstr->size_allocated;
     
     if (size < 8) {
         size = 8;
@@ -26,7 +27,7 @@ static void cstr_realloc (CString *cstr, int new_size) {
 
 void cstr_ccat (CString *cstr, int ch) {
 
-    int size = cstr->size + 1;
+    int32_t size = cstr->size + 1;
     
     if (size > cstr->size_allocated) {
         cstr_realloc (cstr, size);
@@ -37,9 +38,9 @@ void cstr_ccat (CString *cstr, int ch) {
 
 }
 
-void cstr_cat (CString *cstr, const char *str, int len) {
+void cstr_cat (CString *cstr, const char *str, int32_t len) {
 
-    int size;
+    int32_t size;
     
     if (len <= 0) {
         len = strlen (str) + 1 + len;

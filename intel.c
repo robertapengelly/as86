@@ -3,6 +3,7 @@
  *****************************************************************************/
 #include    <ctype.h>
 #include    <stddef.h>
+#include    <stdint.h>
 #include    <stdio.h>
 #include    <stdlib.h>
 #include    <string.h>
@@ -98,7 +99,8 @@ struct intel_type {
 
     const char *name;
     enum expr_type expr_type;
-    unsigned int size;
+    
+    uint32_t size;
 
 };
 
@@ -123,7 +125,8 @@ struct intel_operator {
 
     const char *name;
     enum expr_type expr_type;
-    unsigned int operands;
+    
+    uint32_t operands;
 
 };
 
@@ -793,7 +796,7 @@ static struct template template_table[] = {
 
 };
 
-#define     REG_FLAT_NUMBER             ((unsigned int) ~0)
+#define     REG_FLAT_NUMBER             ((uint32_t) ~0)
 
 static struct reg_entry reg_table[] = {
 
@@ -955,7 +958,7 @@ static const struct reg_entry *find_reg_entry (const char *name) {
 
 static int intel_parse_name (struct expr *expr, char *name) {
 
-    int i;
+    int32_t i;
 
     if (strcmp (name, "$") == 0) {
 
@@ -1205,12 +1208,12 @@ struct instruction {
     struct template template;
     char suffix;
     
-    int operands;
-    int reg_operands;
-    int disp_operands;
-    int mem_operands;
+    int32_t operands;
+    int32_t reg_operands;
+    int32_t disp_operands;
+    int32_t mem_operands;
     
-    unsigned int types[MAX_OPERANDS];
+    uint32_t types[MAX_OPERANDS];
     const struct reg_entry *regs[MAX_OPERANDS];
     
     struct expr *imms[MAX_OPERANDS];
@@ -1222,13 +1225,13 @@ struct instruction {
     const struct reg_entry *base_reg;
     const struct reg_entry *index_reg;
     
-    unsigned int log2_scale_factor;
+    uint32_t log2_scale_factor;
     
-    unsigned int prefixes[MAX_PREFIXES];
-    int prefix_count;
+    uint32_t prefixes[MAX_PREFIXES];
+    int32_t prefix_count;
     
     const struct reg_entry *segments[MAX_OPERANDS];
-    int force_short_jump;
+    int32_t force_short_jump;
 
 };
 
@@ -1244,7 +1247,7 @@ static const struct templates *current_templates;
 static int add_prefix (unsigned char prefix) {
 
     int ret = 1;
-    unsigned int prefix_type;
+    uint32_t prefix_type;
 
     switch (prefix) {
     
@@ -1305,7 +1308,7 @@ static int add_prefix (unsigned char prefix) {
 
 static int check_byte_reg (void) {
 
-    int op;
+    int32_t op;
     
     for (op = instruction.operands; --op >= 0; ) {
     
@@ -1338,7 +1341,7 @@ static int check_byte_reg (void) {
 
 static int check_word_reg (void) {
 
-    int op;
+    int32_t op;
     
     for (op = instruction.operands; --op >= 0; ) {
     
@@ -1361,7 +1364,7 @@ static int check_word_reg (void) {
 
 static int check_dword_reg (void) {
 
-    int op;
+    int32_t op;
     
     for (op = instruction.operands; --op >= 0; ) {
     
@@ -1396,7 +1399,7 @@ static int process_suffix (void) {
     
     } else if (instruction.reg_operands && (instruction.operands > 1 || (instruction.types[0] & REG))) {
     
-        int saved_operands = instruction.operands;
+        int32_t saved_operands = instruction.operands;
         
         is_movsx_or_movzx = ((instruction.template.base_opcode & 0xFF00) == 0x0F00
             && ((instruction.template.base_opcode & 0xFF) | 8) == 0xBE);
@@ -1409,7 +1412,7 @@ static int process_suffix (void) {
         
         if (!instruction.suffix) {
         
-            int op;
+            int32_t op;
 
             for (op = instruction.operands; --op >= 0; ) {
             
@@ -1484,7 +1487,7 @@ static int process_suffix (void) {
                                           
     if (!instruction.suffix && !(instruction.template.opcode_modifier & IGNORE_SIZE) && !(instruction.template.opcode_modifier & DEFAULT_SIZE) /* Explicit data size prefix allows determining the size. */ && !instruction.prefixes[DATA_PREFIX] /* fldenv and similar instructions do not require a suffix. */ && ((instruction.template.opcode_modifier & NO_SSUF) || (instruction.template.opcode_modifier & FLOAT_MF))) {
     
-        int suffixes = !(instruction.template.opcode_modifier & NO_BSUF);
+        int32_t suffixes = !(instruction.template.opcode_modifier & NO_BSUF);
         
         if (!(instruction.template.opcode_modifier & NO_WSUF)) {
             suffixes |= 1 << 1;
@@ -1581,7 +1584,7 @@ static int process_suffix (void) {
         
             if (instruction.suffix != QWORD_SUFFIX && !(instruction.template.opcode_modifier & (IGNORE_SIZE | FLOAT_MF)) && ((instruction.suffix == DWORD_SUFFIX) == (bits == 16))) {
             
-                unsigned int prefix = DATA_PREFIX_OPCODE;
+                uint32_t prefix = DATA_PREFIX_OPCODE;
                 
                 if (instruction.template.opcode_modifier & JUMPBYTE) {
                     prefix = ADDR_PREFIX_OPCODE;
@@ -1613,11 +1616,11 @@ static int process_suffix (void) {
 
 static int finalize_imms (void) {
 
-    int operand;
+    int32_t operand;
     
     for (operand = 0; operand < instruction.operands; operand++) {
     
-        unsigned int overlap = instruction.types[operand] & instruction.template.operand_types[operand];
+        uint32_t overlap = instruction.types[operand] & instruction.template.operand_types[operand];
         
         if ((overlap & IMM) && (overlap != IMM8) && (overlap != IMM8S) && (overlap != IMM16) && (overlap != IMM32)) {
         
@@ -1671,7 +1674,7 @@ static int finalize_imms (void) {
 
 }
 
-static unsigned int modrm_mode_from_disp_size (unsigned int type) {
+static uint32_t modrm_mode_from_disp_size (uint32_t type) {
     return ((type & DISP8) ? 1 : ((type & (DISP16 | DISP32)) ? 2 : 0));
 }
 
@@ -1679,7 +1682,7 @@ static int process_operands (void) {
 
     if (instruction.template.opcode_modifier & REG_DUPLICATION) {
     
-        unsigned int first_reg_operand = (instruction.types[0] & REG) ? 0 : 1;
+        uint32_t first_reg_operand = (instruction.types[0] & REG) ? 0 : 1;
         
         instruction.regs[first_reg_operand + 1] = instruction.regs[first_reg_operand];
         instruction.types[first_reg_operand + 1] = instruction.types[first_reg_operand];
@@ -1689,7 +1692,7 @@ static int process_operands (void) {
     
     if (instruction.template.opcode_modifier & SHORT_FORM) {
     
-        int operand = (instruction.types[0] & (REG | FLOAT_REG)) ? 0 : 1;
+        int32_t operand = (instruction.types[0] & (REG | FLOAT_REG)) ? 0 : 1;
         instruction.template.base_opcode |= instruction.regs[operand]->number;
     
     }
@@ -1698,7 +1701,7 @@ static int process_operands (void) {
     
         if (instruction.reg_operands == 2) {
         
-            unsigned int source, dest;
+            uint32_t source, dest;
             
             source = (instruction.types[0] & (REG | SEGMENT1 | SEGMENT2 | CONTROL | DEBUG | TEST)) ? 0 : 1;
             dest = source + 1;
@@ -1721,8 +1724,8 @@ static int process_operands (void) {
         
             if (instruction.mem_operands) {
             
-                int fake_zero_displacement = 0;
-                int operand = 0;
+                int32_t fake_zero_displacement = 0;
+                int32_t operand = 0;
                 
                 if (instruction.types[0] & ANY_MEM) {
                     ;
@@ -1856,7 +1859,7 @@ static int process_operands (void) {
             
             if (instruction.reg_operands) {
             
-                int operand = 0;
+                int32_t operand = 0;
                 
                 if (instruction.types[0] & (REG | SEGMENT1 | SEGMENT2 | CONTROL | DEBUG | TEST)) {
                     ;
@@ -1901,7 +1904,7 @@ static int process_operands (void) {
     
     {
     
-        int operand;
+        int32_t operand;
         
         for (operand = 0; operand < instruction.operands; operand++) {
         
@@ -1948,7 +1951,7 @@ static void output_jump (void) {
     unsigned long offset;
     unsigned long opcode_offset_in_buf;
     
-    unsigned int code16 = 0;
+    uint32_t code16 = 0;
     
     if (bits == 16) {
         code16 = RELAX_SUBTYPE_CODE16_JUMP;
@@ -2021,7 +2024,7 @@ static void output_jump (void) {
 
 static void output_call_or_jumpbyte (void) {
 
-    int size;
+    int32_t size;
     
     if (instruction.template.opcode_modifier & JUMPBYTE) {
     
@@ -2043,7 +2046,7 @@ static void output_call_or_jumpbyte (void) {
     
     } else {
     
-        unsigned int code16 = 0;
+        uint32_t code16 = 0;
         
         if (bits == 16) {
             code16 = RELAX_SUBTYPE_CODE16_JUMP;
@@ -2106,10 +2109,10 @@ static void output_call_or_jumpbyte (void) {
 
 static void output_intersegment_jump (void) {
 
-    unsigned int code16;
-    unsigned int size;
-    unsigned char *p;
+    uint32_t code16;
+    uint32_t size;
     
+    unsigned char *p;
     code16 = 0;
     
     if (bits == 16) {
@@ -2676,10 +2679,10 @@ static int intel_simplify_symbol (struct symbol *symbol) {
 
 }
 
-static void swap_2_operands (unsigned int op1, unsigned int op2) {
+static void swap_2_operands (uint32_t op1, uint32_t op2) {
 
-    unsigned int temp_type;
     const struct reg_entry *temp_reg;
+    uint32_t temp_type;
     
     struct expr *temp_expr;
     
@@ -2740,7 +2743,7 @@ static void intel_fold_symbol_into_expr (struct expr *expr, struct symbol *symbo
 
 static int intel_process_register_expr (struct expr *expr) {
 
-    int reg_num = expr->add_number;
+    int32_t reg_num = expr->add_number;
     
     if (intel_state.in_offset) {
     
@@ -3491,9 +3494,8 @@ static int parse_operands (char **p_line) {
 
     while (*line != '\0') {
     
+        uint32_t paren_not_balanced = 0;
         char *token_start;
-        unsigned int paren_not_balanced;
-        paren_not_balanced = 0;
         
         line = skip_whitespace (line);
         token_start = line;
@@ -3577,8 +3579,8 @@ static int match_template (void) {
 
     const struct template *template;
     
-    unsigned int found_reverse_match = 0;
-    unsigned int suffix_check = 0;
+    uint32_t found_reverse_match = 0;
+    uint32_t suffix_check = 0;
     
     switch (instruction.suffix) {
     
@@ -3614,9 +3616,22 @@ static int match_template (void) {
     
     }
     
+    if (current_templates[0].start->base_opcode == 0xCD && instruction.operands == 1 && instruction.types[0] & IMM) {
+
+        if (instruction.imms[0]->type == EXPR_TYPE_CONSTANT && instruction.imms[0]->add_number == 3) {
+        
+            instruction.template.base_opcode = 0xCC;
+            instruction.operands--;
+            
+            return 0;
+        
+        }
+    
+    }
+    
     for (template = current_templates->start ; template < current_templates->end; template++) {
     
-        unsigned int operand_type_overlap0, operand_type_overlap1, operand_type_overlap2;
+        uint32_t operand_type_overlap0, operand_type_overlap1, operand_type_overlap2;
         
         if (instruction.operands != template->operands) {
             continue;
@@ -3707,7 +3722,7 @@ static int match_template (void) {
 
 }
 
-unsigned int smallest_imm_type (long number) {
+uint32_t smallest_imm_type (long number) {
 
     if (fits_in_signed_byte (number)) {
         return (IMM8S | IMM8 | IMM16 | IMM32);
@@ -3727,7 +3742,7 @@ unsigned int smallest_imm_type (long number) {
 
 static void optimize_size_of_disps (void) {
 
-    int operand;
+    int32_t operand;
     
     for (operand = 0; operand < instruction.operands; operand++) {
     
@@ -3759,7 +3774,7 @@ static void optimize_size_of_disps (void) {
 static void optimize_size_of_imms (void) {
 
     char guessed_suffix = 0;
-    int operand;
+    int32_t operand;
     
     if (instruction.suffix) {
         guessed_suffix = instruction.suffix;
@@ -3835,7 +3850,7 @@ static void optimize_size_of_imms (void) {
 
 }
 
-static long convert_number_to_size (unsigned long value, int size) {
+static long convert_number_to_size (unsigned long value, int32_t size) {
 
     unsigned long mask;
     
@@ -3874,7 +3889,7 @@ static long convert_number_to_size (unsigned long value, int size) {
 
 static void output_disps (void) {
 
-    int operand;
+    int32_t operand;
     
     for (operand = 0; operand < instruction.operands; operand++) {
     
@@ -3963,7 +3978,7 @@ static void output_imms (void) {
 }
 
 
-enum expr_type machine_dependent_parse_operator (char **pp, char *name, char *original_saved_c, unsigned int operands) {
+enum expr_type machine_dependent_parse_operator (char **pp, char *name, char *original_saved_c, uint32_t operands) {
 
     size_t i;
     
@@ -4123,7 +4138,7 @@ char *machine_dependent_assemble_line (char *line) {
         output_intersegment_jump ();
     } else {
     
-        unsigned int i;
+        uint32_t i;
 
         for (i = 0; i < ARRAY_SIZE (instruction.prefixes); i++) {
         

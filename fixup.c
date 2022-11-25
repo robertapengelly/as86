@@ -2,6 +2,7 @@
  * @file            fixup.c
  *****************************************************************************/
 #include    <stddef.h>
+#include    <stdint.h>
 
 #include    "as.h"
 #include    "expr.h"
@@ -12,7 +13,7 @@
 #include    "section.h"
 #include    "symbol.h"
 
-static struct fixup *fixup_new_internal (struct frag *frag, unsigned long where, int size, struct symbol *add_symbol, long add_number, int pcrel, reloc_type_t reloc_type) {
+static struct fixup *fixup_new_internal (struct frag *frag, unsigned long where, int32_t size, struct symbol *add_symbol, long add_number, int pcrel, reloc_type_t reloc_type) {
 
     struct fixup *fixup = xmalloc (sizeof (*fixup));
     
@@ -38,11 +39,11 @@ static struct fixup *fixup_new_internal (struct frag *frag, unsigned long where,
 
 }
 
-struct fixup *fixup_new (struct frag *frag, unsigned long where, int size, struct symbol *add_symbol, long add_number, int pcrel, reloc_type_t reloc_type) {
+struct fixup *fixup_new (struct frag *frag, unsigned long where, int32_t size, struct symbol *add_symbol, long add_number, int pcrel, reloc_type_t reloc_type) {
     return fixup_new_internal (frag, where, size, add_symbol, add_number, pcrel, reloc_type);
 }
 
-struct fixup *fixup_new_expr (struct frag *frag, unsigned long where, int size, struct expr *expr, int pcrel, reloc_type_t reloc_type) {
+struct fixup *fixup_new_expr (struct frag *frag, unsigned long where, int32_t size, struct expr *expr, int pcrel, reloc_type_t reloc_type) {
 
     struct symbol *add_symbol = NULL;
     offset_t add_number = 0;

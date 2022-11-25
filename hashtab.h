@@ -9,7 +9,7 @@
 struct hashtab_name {
 
     const char *chars;
-    size_t bytes, hash;
+    unsigned long bytes, hash;
 
 };
 
@@ -23,7 +23,7 @@ struct hashtab_entry {
 struct hashtab {
 
     struct hashtab_entry *entries;
-    size_t capacity, count, used;
+    unsigned long capacity, count, used;
 
 };
 

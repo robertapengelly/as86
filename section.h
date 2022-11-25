@@ -4,6 +4,8 @@
 #ifndef     _SECTION_H
 #define     _SECTION_H
 
+#include    <stdint.h>
+
 #include    "fixup.h"
 #include    "types.h"
 
@@ -47,12 +49,12 @@ const char *section_get_name (section_t section);
 
 int section_find_by_name (const char *name);
 
-unsigned int sections_get_count (void);
-unsigned int section_get_number (section_t section);
+uint32_t sections_get_count (void);
+uint32_t section_get_number (section_t section);
 
 void sections_chain_subsection_frags (void);
 void sections_init (void);
-void sections_number (unsigned int start_at);
+void sections_number (uint32_t start_at);
 
 
 void *section_get_object_format_dependent_data (section_t section);

@@ -2,6 +2,7 @@
  * @file            coff.c
  *****************************************************************************/
 #include    <stddef.h>
+#include    <stdint.h>
 #include    <stdio.h>
 #include    <stdlib.h>
 #include    <string.h>
@@ -89,7 +90,7 @@ void coff_write_object (void) {
     struct symbol *symbol;
     
     FILE *outfile;
-    unsigned int string_table_size = 4;
+    uint32_t string_table_size = 4;
     
     section_t section;
     

@@ -4,18 +4,19 @@
 #ifndef     _AOUT_H
 #define     _AOUT_H
 
+#include    <stdint.h>
 #define     SEGMENT_SIZE                0x10000UL
 
 struct exec {
 
-    unsigned int a_info;
-    unsigned int a_text;
-    unsigned int a_data;
-    unsigned int a_bss;
-    unsigned int a_syms;
-    unsigned int a_entry;
-    unsigned int a_trsize;
-    unsigned int a_drsize;
+    uint32_t a_info;
+    uint32_t a_text;
+    uint32_t a_data;
+    uint32_t a_bss;
+    uint32_t a_syms;
+    uint32_t a_entry;
+    uint32_t a_trsize;
+    uint32_t a_drsize;
 
 };
 
@@ -27,8 +28,8 @@ struct exec {
 /* Relocation entry. */
 struct relocation_info {
 
-    int r_address;
-    unsigned int r_symbolnum;
+    int32_t r_address;
+    uint32_t r_symbolnum;
 
 };
 
@@ -42,13 +43,13 @@ struct nlist {
     
     } n_un;*/
     
-    int n_strx;
+    int32_t n_strx;
     unsigned char n_type;
     
     char n_other;
     short n_desc;
     
-    unsigned int n_value;
+    uint32_t n_value;
 
 };
 

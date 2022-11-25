@@ -69,10 +69,10 @@ static void internal_add_line (char *line, const char *filename, unsigned long l
 
 }
 
-void add_listing_line (char *real_line, size_t real_line_len, const char *filename, unsigned long line_number) {
+void add_listing_line (char *real_line, unsigned long real_line_len, const char *filename, unsigned long line_number) {
 
     char *line;
-    size_t start, i;
+    unsigned long start, i;
     
     for (start = 0, i = 0; i < real_line_len; i++) {
     

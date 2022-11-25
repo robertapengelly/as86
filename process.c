@@ -320,7 +320,7 @@ static int handler_ifndef (char **pp) {
 
 static int handler_elif (char **pp) {
 
-    int last = cond_stack.length - 1;
+    int32_t last = cond_stack.length - 1;
     int cond = 0;
     
     long flag;
@@ -367,7 +367,7 @@ static int handler_elif (char **pp) {
 
 static int handler_elifdef (char **pp) {
 
-    int last = cond_stack.length - 1;
+    int32_t last = cond_stack.length - 1;
     int cond = 0;
     
     long flag;
@@ -423,7 +423,7 @@ static int handler_elifdef (char **pp) {
 
 static int handler_elifndef (char **pp) {
 
-    int last = cond_stack.length - 1;
+    int32_t last = cond_stack.length - 1;
     int cond = 0;
     
     long flag;
@@ -479,7 +479,7 @@ static int handler_elifndef (char **pp) {
 
 static int handler_else (char **pp) {
 
-    int last = cond_stack.length - 1;
+    int32_t last = cond_stack.length - 1;
     long flag;
     
     if (last < 0) {
@@ -511,7 +511,7 @@ static int handler_else (char **pp) {
 
 static int handler_endif (char **pp) {
 
-    int len = cond_stack.length;
+    int32_t len = cond_stack.length;
     long flag;
     
     if (len <= 0) {
@@ -542,7 +542,7 @@ void handler_include (char **pp) {
     unsigned long orig_ln = line_number;
     
     char *p2 = NULL, *tmp;
-    size_t i, len = 0;
+    unsigned long i, len = 0;
     
     *pp = skip_whitespace (*pp);
     tmp = *pp;
@@ -660,7 +660,7 @@ int process_file (const char *fname) {
     unsigned long newlines;
     char *line, *line_end;
     
-    size_t real_line_len;
+    unsigned long real_line_len;
     char *real_line;
     
     int enabled = 1, i;
@@ -1114,7 +1114,7 @@ int process_file (const char *fname) {
                             report (REPORT_ERROR, "block nesting error");
                         } else {
                         
-                            int last = state->procs.length - 1;
+                            int32_t last = state->procs.length - 1;
                             struct proc *proc = state->procs.data[last];
                             
                             if (strcmp (start_p, proc->name)) {
@@ -1157,7 +1157,7 @@ int process_file (const char *fname) {
                         if (proc->regs.length > 0) {
                         
                             char *temp, *reg;
-                            int i;
+                            int32_t i;
                             
                             for (i = proc->regs.length - 1; i >= 0; --i) {
                             
@@ -1224,7 +1224,7 @@ int process_file (const char *fname) {
     
     if (cond_stack.length > 0) {
     
-        int count = cond_stack.length;
+        int32_t count = cond_stack.length;
         report (REPORT_ERROR, "%d if statement%s not closed", count, (count == 1 ? "" : "s"));
     
     }

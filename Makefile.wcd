@@ -4,7 +4,7 @@
 # Produce MSDOS executables links with PDPCLIB created by makefile.wcd
 #******************************************************************************
 CC=wcl
-COPTS=-ecc -q -w -c -ml -zl -D__MSDOS__ -fpi87 -s -zdp -zu -I. -I..\pdos\pdpclib
+COPTS=-ecc -q -w -c -ml -zl -D__MSDOS__ -D__PDOS__ -fpi87 -s -zdp -zu -I. -I..\pdos\pdpclib
 
 all: clean as86.exe
 

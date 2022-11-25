@@ -18,7 +18,7 @@ struct proc {
 struct as_state {
 
     char **defs, **files, **inc_paths;
-    size_t nb_defs, nb_files, nb_inc_paths;
+    unsigned long nb_defs, nb_files, nb_inc_paths;
     
     const char *format, *listing, *outfile;
     int nowarn, model;

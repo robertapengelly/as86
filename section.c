@@ -1,6 +1,7 @@
 /******************************************************************************
  * @file            section.c
  *****************************************************************************/
+#include    <stdint.h>
 #include    <stdlib.h>
 #include    <string.h>
 
@@ -21,7 +22,7 @@ struct section {
     section_t next;
     
     void *object_format_dependent_data;
-    unsigned int number;
+    uint32_t number;
 
 };
 
@@ -170,17 +171,17 @@ int section_find_by_name (const char *name) {
 
 }
 
-unsigned int sections_get_count (void) {
+uint32_t sections_get_count (void) {
 
     section_t section;
-    unsigned int count;
+    uint32_t count;
 
     for (section = sections, count = 0; section; section = section->next, count++);
     return count;
 
 }
 
-unsigned int section_get_number (section_t section) {
+uint32_t section_get_number (section_t section) {
     return section->number;
 }
 
@@ -247,7 +248,7 @@ void sections_init (void) {
 
 }
 
-void sections_number (unsigned int start_at) {
+void sections_number (uint32_t start_at) {
 
     section_t section;
     

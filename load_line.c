@@ -12,7 +12,7 @@
 struct load_line_data {
 
     char *line, *real_line;
-    size_t capacity, end_of_prev_real_line, read_size;
+    unsigned long capacity, end_of_prev_real_line, read_size;
     
     unsigned long *new_line_number_p;
 
@@ -21,10 +21,10 @@ struct load_line_data {
 #define     CAPACITY_INCREMENT          256
 extern void get_filename_and_line_number (const char **filename_p, unsigned long *line_number_p);
 
-int load_line (char **line_p, char **line_end_p, char **real_line_p, size_t *real_line_len_p, unsigned long *newlines_p, FILE *ifp, void **load_line_internal_data_p) {
+int load_line (char **line_p, char **line_end_p, char **real_line_p, unsigned long *real_line_len_p, unsigned long *newlines_p, FILE *ifp, void **load_line_internal_data_p) {
 
     struct load_line_data *ll_data = *load_line_internal_data_p;
-    size_t pos_in_line = 0, pos_in_real_line = 0;
+    unsigned long pos_in_line = 0, pos_in_real_line = 0;
     
     unsigned long newlines = 0;
     

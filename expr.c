@@ -3,6 +3,7 @@
  *****************************************************************************/
 #include    <ctype.h>
 #include    <stddef.h>
+#include    <stdint.h>
 #include    <stdio.h>
 #include    <string.h>
 
@@ -119,7 +120,7 @@ static char *read_character (char *p, unsigned long *c) {
 
 }
 
-static unsigned int hex_value (int z) {
+static uint32_t hex_value (int32_t z) {
 
     if ((z >= '0') && (z <= '9')) {
         return (z - '0');
@@ -137,12 +138,12 @@ static unsigned int hex_value (int z) {
 
 }
 
-static void integer_constant (char **pp, struct expr *expr, unsigned int radix) {
+static void integer_constant (char **pp, struct expr *expr, uint32_t radix) {
 
     value_t number;
-    unsigned int digit;
+    uint32_t digit;
         
-    for (number = 0; (digit = hex_value ((int) **pp)) < radix; (*pp)++) {
+    for (number = 0; (digit = hex_value ((int32_t) **pp)) < radix; (*pp)++) {
         number = number * radix + digit;
     }
     
@@ -601,7 +602,7 @@ static section_t operand (char **pp, struct expr *expr, enum expr_mode expr_mode
 
 }
 
-static enum expr_type operator (char *p, unsigned int *operator_size) {
+static enum expr_type operator (char *p, uint32_t *operator_size) {
 
     char *start;
     enum expr_type ret;
@@ -805,7 +806,7 @@ struct symbol *make_expr_symbol (struct expr *expr) {
 
 }
 
-static unsigned int op_rank_table[EXPR_TYPE_MAX] = {
+static uint32_t op_rank_table[EXPR_TYPE_MAX] = {
 
     0,                                  /* EXPR_TYPE_INVALID */
     0,                                  /* EXPR_TYPE_ABSENT */
@@ -840,7 +841,7 @@ static unsigned int op_rank_table[EXPR_TYPE_MAX] = {
 
 };
 
-void expr_type_set_rank (enum expr_type expr_type, unsigned int rank) {
+void expr_type_set_rank (enum expr_type expr_type, uint32_t rank) {
     op_rank_table[expr_type] = rank;
 }
 
@@ -855,13 +856,13 @@ section_t current_location (struct expr *expr) {
 
 }
 
-section_t read_into (char **pp, struct expr *expr, unsigned int rank, enum expr_mode expr_mode) {
+section_t read_into (char **pp, struct expr *expr, uint32_t rank, enum expr_mode expr_mode) {
 
     enum expr_type left_op;
     struct expr right_expr;
     
     section_t ret_section;
-    unsigned int operator_size;
+    uint32_t operator_size;
     
     ret_section = operand (pp, expr, expr_mode);
     left_op = operator (*pp, &operator_size);

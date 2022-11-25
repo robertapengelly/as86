@@ -2,6 +2,7 @@
  * @file            aout.c
  *****************************************************************************/
 #include    <stddef.h>
+#include    <stdint.h>
 #include    <stdio.h>
 #include    <stdlib.h>
 #include    <string.h>
@@ -56,7 +57,7 @@ void aout_write_object (void) {
     unsigned long symbol_table_size;
     
     FILE *outfile;
-    unsigned int string_table_pos = 4;
+    uint32_t string_table_pos = 4;
     
     memset (&header, 0, sizeof (header));
     header.a_info = 0x00640000 | OMAGIC;
@@ -156,7 +157,7 @@ void aout_write_object (void) {
         } else {
         
             struct symbol *symbol;
-            int symbol_number;
+            int32_t symbol_number;
             
             for (symbol = symbols, symbol_number = 0; symbol && (symbol != fixup->add_symbol); symbol = symbol->next) {
             
@@ -167,7 +168,7 @@ void aout_write_object (void) {
             }
             
             reloc.r_symbolnum  = symbol_number;
-            reloc.r_symbolnum |= 1 << 27;
+            reloc.r_symbolnum |= 1L << 27;
         
         }
         
@@ -175,7 +176,7 @@ void aout_write_object (void) {
         
         {
         
-            int log2_of_size, size;
+            int32_t log2_of_size, size;
             
             for (log2_of_size = -1, size = fixup->size; size; size >>= 1, log2_of_size++);
             reloc.r_symbolnum |= log2_of_size << 25;
@@ -226,7 +227,7 @@ void aout_write_object (void) {
         } else {
         
             struct symbol *symbol;
-            int symbol_number;
+            int32_t symbol_number;
             
             for (symbol = symbols, symbol_number = 0; symbol && (symbol != fixup->add_symbol); symbol = symbol->next) {
             
@@ -237,7 +238,7 @@ void aout_write_object (void) {
             }
             
             reloc.r_symbolnum  = symbol_number;
-            reloc.r_symbolnum |= 1 << 27;
+            reloc.r_symbolnum |= 1L << 27;
         
         }
         
@@ -245,7 +246,7 @@ void aout_write_object (void) {
         
         {
         
-            int log2_of_size, size;
+            int32_t log2_of_size, size;
             
             for (log2_of_size = -1, size = fixup->size; size; size >>= 1, log2_of_size++);
             reloc.r_symbolnum |= log2_of_size << 25;

@@ -113,7 +113,7 @@ char *skip_whitespace (char *p) {
 
 char *to_lower (const char *str) {
 
-    size_t i, len = strlen (str);
+    unsigned long i, len = strlen (str);
     char *new_str;
     
     if ((new_str = malloc (len + 1)) == NULL) {
@@ -185,7 +185,7 @@ int xstrcasecmp (const char *s1, const char *s2) {
 
 }
 
-int xstrncasecmp (const char *s1, const char *s2, size_t n) {
+int xstrncasecmp (const char *s1, const char *s2, unsigned long n) {
 
     const unsigned char *p1 = (const unsigned char *) s1;
     const unsigned char *p2 = (const unsigned char *) s2;
@@ -211,7 +211,7 @@ int xstrncasecmp (const char *s1, const char *s2, size_t n) {
 
 }
 
-void *xmalloc (size_t size) {
+void *xmalloc (unsigned long size) {
 
     void *ptr = malloc (size);
     
@@ -227,7 +227,7 @@ void *xmalloc (size_t size) {
 
 }
 
-void *xrealloc (void *ptr, size_t size) {
+void *xrealloc (void *ptr, unsigned long size) {
 
     void *new_ptr = realloc (ptr, size);
     
@@ -242,9 +242,9 @@ void *xrealloc (void *ptr, size_t size) {
 
 }
 
-void dynarray_add (void *ptab, size_t *nb_ptr, void *data) {
+void dynarray_add (void *ptab, unsigned long *nb_ptr, void *data) {
 
-    int nb, nb_alloc;
+    int32_t nb, nb_alloc;
     void **pp;
     
     nb = *nb_ptr;

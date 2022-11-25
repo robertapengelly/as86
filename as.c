@@ -33,7 +33,7 @@ const char *program_name = 0;
 
 static void handle_defines (void) {
 
-    size_t i;
+    unsigned long i;
     
     for (i = 0; i < state->nb_defs; ++i) {
     
@@ -60,7 +60,7 @@ static void handle_defines (void) {
 
 int main (int argc, char **argv) {
 
-    size_t i;
+    unsigned long i;
     
     if (argc && *argv) {
     

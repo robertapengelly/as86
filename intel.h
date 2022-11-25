@@ -86,10 +86,12 @@
 
 #define     IMPLICIT_REGISTER           (SHIFT_COUNT | ACC)
 
+#include    <stdint.h>
+
 struct reg_entry {
 
     const char *name;
-    unsigned int type, number;
+    uint32_t type, number;
 
 };
 
@@ -99,12 +101,12 @@ struct reg_entry {
 struct template {
 
     const char *name;
-    int operands;
+    int32_t operands;
     
-    unsigned int base_opcode;
-    unsigned int extension_opcode;
-    unsigned int opcode_modifier;
-    unsigned int operand_types[MAX_OPERANDS];
+    uint32_t base_opcode;
+    uint32_t extension_opcode;
+    uint32_t opcode_modifier;
+    uint32_t operand_types[MAX_OPERANDS];
     
     int minimum_cpu;
 
@@ -133,17 +135,17 @@ struct template {
 
 struct modrm_byte {
 
-    unsigned int regmem;
-    unsigned int reg;
-    unsigned int mode;
+    uint32_t regmem;
+    uint32_t reg;
+    uint32_t mode;
 
 };
 
 struct sib_byte {
 
-    unsigned int base;
-    unsigned int index;
-    unsigned int scale;
+    uint32_t base;
+    uint32_t index;
+    uint32_t scale;
 
 };
 
@@ -167,7 +169,7 @@ struct sib_byte {
 #include    "expr.h"
 #include    "types.h"
 
-enum expr_type machine_dependent_parse_operator (char **pp, char *name, char *original_saved_c, unsigned int operands);
+enum expr_type machine_dependent_parse_operator (char **pp, char *name, char *original_saved_c, uint32_t operands);
 char *machine_dependent_assemble_line (char *line);
 
 int machine_dependent_force_relocation_local (fixup_t fixup);

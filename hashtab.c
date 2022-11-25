@@ -7,12 +7,12 @@
 
 #include    "hashtab.h"
 
-static struct hashtab_entry *find_entry (struct hashtab_entry *entries, size_t capacity, struct hashtab_name *key);
+static struct hashtab_entry *find_entry (struct hashtab_entry *entries, unsigned long capacity, struct hashtab_name *key);
 
-static int adjust_capacity (struct hashtab *table, size_t new_capacity) {
+static int adjust_capacity (struct hashtab *table, unsigned long new_capacity) {
 
     struct hashtab_entry *new_entries, *old_entries;
-    size_t i, new_count, old_capacity;
+    unsigned long i, new_count, old_capacity;
     
     if ((new_entries = malloc (sizeof (*new_entries) * new_capacity)) == NULL) {
         return -2;
@@ -60,10 +60,10 @@ static int adjust_capacity (struct hashtab *table, size_t new_capacity) {
 
 }
 
-static struct hashtab_entry *find_entry (struct hashtab_entry *entries, size_t capacity, struct hashtab_name *key) {
+static struct hashtab_entry *find_entry (struct hashtab_entry *entries, unsigned long capacity, struct hashtab_name *key) {
 
     struct hashtab_entry *tombstone = NULL;
-    unsigned int index;
+    unsigned long index;
     
     for (index = key->hash % capacity; ; index = (index + 1) % capacity) {
     
@@ -95,10 +95,10 @@ static struct hashtab_entry *find_entry (struct hashtab_entry *entries, size_t c
 
 }
 
-static size_t hash_string (const void *p, size_t length) {
+static unsigned long hash_string (const void *p, unsigned long length) {
 
     const unsigned char *str = (const unsigned char *) p;
-    size_t i, result = 0;
+    unsigned long i, result = 0;
     
     for (i = 0; i < length; ++i) {
         result = (str[i] << 24) + (result >> 19) + (result << 16) + (result >> 13) + (str[i] << 8) - result;
@@ -111,7 +111,7 @@ static size_t hash_string (const void *p, size_t length) {
 struct hashtab_name *hashtab_alloc_name (const char *str) {
 
     struct hashtab_name *name;
-    size_t bytes = strlen (str), hash = hash_string (str, bytes);
+    unsigned long bytes = strlen (str), hash = hash_string (str, bytes);
     
     if ((name = malloc (sizeof (*name))) == NULL) {
         return NULL;
@@ -145,14 +145,14 @@ void *hashtab_get (struct hashtab *table, struct hashtab_name *key) {
 
 int hashtab_put (struct hashtab *table, struct hashtab_name *key, void *value) {
 
-    const int MIN_CAPACITY = 15;
+    const long MIN_CAPACITY = 15;
     
     struct hashtab_entry *entry;
     int ret = 0;
     
     if (table->used >= table->capacity / 2) {
     
-        int capacity = table->capacity * 2 - 1;
+        long capacity = table->capacity * 2 - 1;
         
         if (capacity < MIN_CAPACITY) {
             capacity = MIN_CAPACITY;

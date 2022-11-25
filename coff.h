@@ -4,17 +4,19 @@
 #ifndef     _COFF_H
 #define     _COFF_H
 
+#include    <stdint.h>
+
 struct coff_header {
 
-    unsigned short Machine;
-    unsigned short NumberOfSections;
+    uint16_t Machine;
+    uint16_t NumberOfSections;
     
-    unsigned int TimeDateStamp;
-    unsigned int PointerToSymbolTable;
-    unsigned int NumberOfSymbols;
+    uint32_t TimeDateStamp;
+    uint32_t PointerToSymbolTable;
+    uint32_t NumberOfSymbols;
     
-    unsigned short SizeOfOptionalHeader;
-    unsigned short Characteristics;
+    uint16_t SizeOfOptionalHeader;
+    uint16_t Characteristics;
 
 };
 
@@ -25,18 +27,18 @@ struct section_table_entry {
 
     char Name[8];
     
-    unsigned int VirtualSize;
-    unsigned int VirtualAddress;
+    uint32_t VirtualSize;
+    uint32_t VirtualAddress;
     
-    unsigned int SizeOfRawData;
-    unsigned int PointerToRawData;
-    unsigned int PointerToRelocations;
-    unsigned int PointerToLinenumbers;
+    uint32_t SizeOfRawData;
+    uint32_t PointerToRawData;
+    uint32_t PointerToRelocations;
+    uint32_t PointerToLinenumbers;
     
-    unsigned short NumberOfRelocations;
-    unsigned short NumberOfLinenumbers;
+    uint16_t NumberOfRelocations;
+    uint16_t NumberOfLinenumbers;
     
-    unsigned int Characteristics;
+    uint32_t Characteristics;
 
 };
 
@@ -49,10 +51,10 @@ struct section_table_entry {
 
 struct relocation_entry {
 
-    unsigned int VirtualAddress;
-    unsigned int SymbolTableIndex;
+    uint32_t VirtualAddress;
+    uint32_t SymbolTableIndex;
     
-    unsigned short Type;
+    uint16_t Type;
 
 };
 
@@ -68,10 +70,10 @@ struct relocation_entry {
 struct symbol_table_entry {
 
     char Name[8];
-    unsigned int Value;
+    uint32_t Value;
     
     signed short SectionNumber;
-    unsigned short Type;
+    uint16_t Type;
     
     unsigned char StorageClass;
     unsigned char NumberOfAuxSymbols;
