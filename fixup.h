@@ -4,8 +4,6 @@
 #ifndef     _FIXUP_H
 #define     _FIXUP_H
 
-#include    <stdint.h>
-
 #include    "types.h"
 
 struct fixup {

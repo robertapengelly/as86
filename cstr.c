@@ -1,12 +1,12 @@
 /******************************************************************************
  * @file            cstr.c
  *****************************************************************************/
-#include    <stdint.h>
 #include    <stdlib.h>
 #include    <string.h>
 
 #include    "cstr.h"
 #include    "lib.h"
+#include    "types.h"
 
 static void cstr_realloc (CString *cstr, int32_t new_size) {
 

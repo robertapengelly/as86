@@ -2,7 +2,6 @@
  * @file            coff.c
  *****************************************************************************/
 #include    <stddef.h>
-#include    <stdint.h>
 #include    <stdio.h>
 #include    <stdlib.h>
 #include    <string.h>
@@ -15,6 +14,7 @@
 #include    "report.h"
 #include    "section.h"
 #include    "symbol.h"
+#include    "types.h"
 
 static int output_relocation (FILE *outfile, struct fixup *fixup) {
 

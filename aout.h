@@ -4,7 +4,7 @@
 #ifndef     _AOUT_H
 #define     _AOUT_H
 
-#include    <stdint.h>
+#include    "types.h"
 #define     SEGMENT_SIZE                0x10000UL
 
 struct exec {

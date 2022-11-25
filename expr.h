@@ -4,8 +4,6 @@
 #ifndef     _EXPR_H
 #define     _EXPR_H
 
-#include    <stdint.h>
-
 enum expr_type {
 
     EXPR_TYPE_INVALID,

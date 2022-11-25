@@ -86,7 +86,7 @@
 
 #define     IMPLICIT_REGISTER           (SHIFT_COUNT | ACC)
 
-#include    <stdint.h>
+#include    "types.h"
 
 struct reg_entry {
 

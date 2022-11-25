@@ -2,7 +2,6 @@
  * @file            fixup.c
  *****************************************************************************/
 #include    <stddef.h>
-#include    <stdint.h>
 
 #include    "as.h"
 #include    "expr.h"
@@ -12,6 +11,7 @@
 #include    "report.h"
 #include    "section.h"
 #include    "symbol.h"
+#include    "types.h"
 
 static struct fixup *fixup_new_internal (struct frag *frag, unsigned long where, int32_t size, struct symbol *add_symbol, long add_number, int pcrel, reloc_type_t reloc_type) {
 

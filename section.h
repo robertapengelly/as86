@@ -4,8 +4,6 @@
 #ifndef     _SECTION_H
 #define     _SECTION_H
 
-#include    <stdint.h>
-
 #include    "fixup.h"
 #include    "types.h"
 

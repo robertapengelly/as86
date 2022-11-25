@@ -3,7 +3,6 @@
  *****************************************************************************/
 #include    <ctype.h>
 #include    <stddef.h>
-#include    <stdint.h>
 #include    <stdio.h>
 #include    <stdlib.h>
 #include    <string.h>
@@ -20,6 +19,7 @@
 #include    "report.h"
 #include    "section.h"
 #include    "symbol.h"
+#include    "types.h"
 
 static int allow_no_prefix_reg = 1;
 static int intel_syntax = 1;
