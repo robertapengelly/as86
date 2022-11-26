@@ -20,9 +20,6 @@ typedef     signed int                  int32_t;
 typedef     unsigned int                uint32_t;
 #endif
 
-typedef     signed long                 int64_t;
-typedef     unsigned long               uint64_t;
-
 
 typedef     struct section              *section_t;
 typedef     signed long                 subsection_t;
