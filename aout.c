@@ -172,7 +172,8 @@ void aout_write_object (void) {
         
         }
         
-        reloc.r_symbolnum |= (!!(fixup->pcrel)) << 24;
+        reloc.r_symbolnum |= fixup->pcrel << 24;
+        /*reloc.r_symbolnum |= (!!(fixup->pcrel)) << 24;*/
         
         {
         
@@ -242,7 +243,8 @@ void aout_write_object (void) {
         
         }
         
-        reloc.r_symbolnum |= (!!(fixup->pcrel)) << 24;
+        reloc.r_symbolnum |= fixup->pcrel << 24;
+        /*reloc.r_symbolnum |= (!!(fixup->pcrel)) << 24;*/
         
         {
         
