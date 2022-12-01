@@ -16,7 +16,7 @@ struct fixup {
     symbol_t add_symbol;
     long add_number;
     
-    int pcrel;
+    int32_t pcrel;
     int done;
     
     reloc_type_t reloc_type;
