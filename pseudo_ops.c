@@ -791,7 +791,9 @@ struct pseudo_op *find_pseudo_op (const char *name) {
     if ((key = hashtab_alloc_name (p)) == NULL) {
     
         free (p);
-        return NULL;
+        
+        report_at (program_name, 0, REPORT_ERROR, "memory full (malloc)");
+        exit (EXIT_FAILURE);
     
     }
     
@@ -820,7 +822,9 @@ int is_data_pseudo_op (const char *name) {
     if ((key = hashtab_alloc_name (p)) == NULL) {
     
         free (p);
-        return ret;
+        
+        report_at (program_name, 0, REPORT_ERROR, "memory full (malloc)");
+        exit (EXIT_FAILURE);
     
     }
     
