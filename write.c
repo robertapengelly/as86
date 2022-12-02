@@ -12,8 +12,8 @@
 #include    "listing.h"
 #include    "report.h"
 #include    "section.h"
+#include    "stdint.h"
 #include    "symbol.h"
-#include    "types.h"
 #include    "write.h"
 
 static unsigned long relax_align (unsigned long address, unsigned long alignment) {

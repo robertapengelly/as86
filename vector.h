@@ -4,7 +4,7 @@
 #ifndef     _VECTOR_H
 #define     _VECTOR_H
 
-#include    "types.h"
+#include    "stdint.h"
 
 struct vector {
 

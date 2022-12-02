@@ -4,7 +4,7 @@
 #ifndef     _CSTR_H
 #define     _CSTR_H
 
-#include    "types.h"
+#include    "stdint.h"
 
 typedef struct CString {
 
