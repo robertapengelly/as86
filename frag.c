@@ -4,6 +4,7 @@
 #include    "frag.h"
 #include    "lib.h"
 #include    "section.h"
+#include    "types.h"
 
 extern void get_filename_and_line_number (const char **filename_p, unsigned long *line_number_p);
 

@@ -12,7 +12,7 @@ as86.exe: aout.obj as.obj coff.obj cstr.obj expr.obj \
     fixup.obj frag.obj hashtab.obj intel.obj \
     lib.obj listing.obj load_line.obj macro.obj process.obj \
     pseudo_ops.obj report.obj section.obj symbol.obj \
-    vector.obj write.obj
+    vector.obj write.obj write7x.obj
   wlink File as.obj Name as86.exe Form dos Library temp.lib,..\pdos\pdpclib\watcom.lib Option quiet,map
 
 .c.obj:

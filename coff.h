@@ -4,7 +4,7 @@
 #ifndef     _COFF_H
 #define     _COFF_H
 
-#include    "types.h"
+#include    "stdint.h"
 
 struct coff_header {
 

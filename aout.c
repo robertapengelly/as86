@@ -12,8 +12,9 @@
 #include    "pseudo_ops.h"
 #include    "report.h"
 #include    "section.h"
+#include    "stdint.h"
 #include    "symbol.h"
-#include    "types.h"
+#include    "write7x.h"
 
 void aout_adjust_code (void) {
 
@@ -59,8 +60,12 @@ void aout_write_object (void) {
     FILE *outfile;
     uint32_t string_table_pos = 4;
     
+    uint32_t a_text, a_data, a_bss;
+    uint32_t a_trsize, a_drsize;
+    uint32_t r_symbolnum;
+    
     memset (&header, 0, sizeof (header));
-    header.a_info = 0x00640000 | OMAGIC;
+    write741_to_byte_array (header.a_info, 0x00640000 | OMAGIC);
     
     if ((outfile = fopen (state->outfile, "wb")) == NULL) {
     
@@ -77,7 +82,7 @@ void aout_write_object (void) {
     }
     
     section_set (text_section);
-    header.a_text = 0;
+    a_text = 0;
     
     for (frag = current_frag_chain->first_frag; frag; frag = frag->next) {
     
@@ -92,12 +97,14 @@ void aout_write_object (void) {
         
         }
         
-        header.a_text += frag->fixed_size;
+        a_text += frag->fixed_size;
     
     }
     
+    write741_to_byte_array (header.a_text, a_text);
+    
     section_set (data_section);
-    header.a_data = 0;
+    a_data = 0;
     
     for (frag = current_frag_chain->first_frag; frag; frag = frag->next) {
     
@@ -112,12 +119,14 @@ void aout_write_object (void) {
         
         }
         
-        header.a_data += frag->fixed_size;
+        a_data += frag->fixed_size;
     
     }
     
+    write741_to_byte_array (header.a_data, a_data);
+    
     section_set (bss_section);
-    header.a_bss = 0;
+    a_bss = 0;
     
     for (frag = current_frag_chain->first_frag; frag; frag = frag->next) {
     
@@ -125,12 +134,14 @@ void aout_write_object (void) {
             continue;
         }
         
-        header.a_bss += frag->fixed_size;
+        a_bss += frag->fixed_size;
     
     }
     
-    header.a_trsize = 0;
+    write741_to_byte_array (header.a_bss, a_bss);
+    
     section_set (text_section);
+    a_trsize = 0;
     
     for (fixup = current_frag_chain->first_fixup; fixup; fixup = fixup->next) {
     
@@ -140,16 +151,16 @@ void aout_write_object (void) {
             continue;
         }
         
-        reloc.r_address = fixup->frag->address + fixup->where;
+        write741_to_byte_array ((unsigned char *) reloc.r_address, fixup->frag->address + fixup->where);
         
         if (symbol_is_section_symbol (fixup->add_symbol)) {
         
             if (symbol_get_section (fixup->add_symbol) == text_section) {
-                reloc.r_symbolnum = N_TEXT;
+                r_symbolnum = N_TEXT;
             } else if (symbol_get_section (fixup->add_symbol) == data_section) {
-                reloc.r_symbolnum = N_DATA;
+                r_symbolnum = N_DATA;
             } else if (symbol_get_section (fixup->add_symbol) == bss_section) {
-                reloc.r_symbolnum = N_BSS;
+                r_symbolnum = N_BSS;
             } else {
                 report_at (NULL, 0, REPORT_ERROR, "Undefined section");
             }
@@ -167,12 +178,12 @@ void aout_write_object (void) {
             
             }
             
-            reloc.r_symbolnum  = symbol_number;
-            reloc.r_symbolnum |= 1L << 27;
+            r_symbolnum  = symbol_number;
+            r_symbolnum |= 1L << 27;
         
         }
         
-        reloc.r_symbolnum |= fixup->pcrel << 24;
+        r_symbolnum |= fixup->pcrel << 24;
         /*reloc.r_symbolnum |= (!!(fixup->pcrel)) << 24;*/
         
         {
@@ -180,9 +191,11 @@ void aout_write_object (void) {
             int32_t log2_of_size, size;
             
             for (log2_of_size = -1, size = fixup->size; size; size >>= 1, log2_of_size++);
-            reloc.r_symbolnum |= log2_of_size << 25;
+            r_symbolnum |= log2_of_size << 25;
         
         }
+        
+        write741_to_byte_array (reloc.r_symbolnum, r_symbolnum);
         
         if (fwrite (&reloc, sizeof (reloc), 1, outfile) != 1) {
         
@@ -191,12 +204,14 @@ void aout_write_object (void) {
         
         }
         
-        header.a_trsize += sizeof (reloc);
+        a_trsize += sizeof (reloc);
     
     }
     
-    header.a_drsize = 0;
+    write741_to_byte_array (header.a_trsize, a_trsize);
+    
     section_set (data_section);
+    a_drsize = 0;
     
     start_address_of_data = current_frag_chain->first_frag->address;
     
@@ -208,16 +223,16 @@ void aout_write_object (void) {
             continue;
         }
         
-        reloc.r_address = fixup->frag->address + fixup->where - start_address_of_data;
+        write741_to_byte_array (reloc.r_address, fixup->frag->address + fixup->where - start_address_of_data);
         
         if (symbol_is_section_symbol (fixup->add_symbol)) {
         
             if (symbol_get_section (fixup->add_symbol) == text_section) {
-                reloc.r_symbolnum = N_TEXT;
+                r_symbolnum = N_TEXT;
             } else if (symbol_get_section (fixup->add_symbol) == data_section) {
-                reloc.r_symbolnum = N_DATA;
+                r_symbolnum = N_DATA;
             } else if (symbol_get_section (fixup->add_symbol) == bss_section) {
-                reloc.r_symbolnum = N_BSS;
+                r_symbolnum = N_BSS;
             } else {
             
                 report_at (__FILE__, __LINE__, REPORT_INTERNAL_ERROR, "invalid section %s", section_get_name (symbol_get_section (fixup->add_symbol)));
@@ -238,12 +253,12 @@ void aout_write_object (void) {
             
             }
             
-            reloc.r_symbolnum  = symbol_number;
-            reloc.r_symbolnum |= 1L << 27;
+            r_symbolnum  = symbol_number;
+            r_symbolnum |= 1L << 27;
         
         }
         
-        reloc.r_symbolnum |= fixup->pcrel << 24;
+        r_symbolnum |= fixup->pcrel << 24;
         /*reloc.r_symbolnum |= (!!(fixup->pcrel)) << 24;*/
         
         {
@@ -251,9 +266,11 @@ void aout_write_object (void) {
             int32_t log2_of_size, size;
             
             for (log2_of_size = -1, size = fixup->size; size; size >>= 1, log2_of_size++);
-            reloc.r_symbolnum |= log2_of_size << 25;
+            r_symbolnum |= log2_of_size << 25;
         
         }
+        
+        write741_to_byte_array (reloc.r_symbolnum, r_symbolnum);
         
         if (fwrite (&reloc, sizeof (reloc), 1, outfile) != 1) {
         
@@ -262,10 +279,11 @@ void aout_write_object (void) {
         
         }
         
-        header.a_drsize += sizeof (reloc);
+        a_drsize += sizeof (reloc);
     
     }
     
+    write741_to_byte_array (header.a_drsize, a_drsize);
     symbol_table_size = 0;
     
     for (symbol = symbols; symbol; symbol = symbol->next) {
@@ -275,7 +293,7 @@ void aout_write_object (void) {
             struct nlist symbol_entry;
             memset (&symbol_entry, 0, sizeof (symbol_entry));
             
-            symbol_entry.n_strx = string_table_pos;
+            write741_to_byte_array (symbol_entry.n_strx, string_table_pos);;
             
             if (symbol_is_external (symbol) && state->sym_start) {
                 string_table_pos++;
@@ -304,7 +322,7 @@ void aout_write_object (void) {
                 symbol_entry.n_type |= N_EXT;
             }
             
-            symbol_entry.n_value = symbol_get_value (symbol);
+            write741_to_byte_array (symbol_entry.n_value, symbol_get_value (symbol));
             
             if (fwrite (&symbol_entry, sizeof (symbol_entry), 1, outfile) != 1) {
             
@@ -319,7 +337,7 @@ void aout_write_object (void) {
     
     }
     
-    header.a_syms = symbol_table_size;
+    write741_to_byte_array (header.a_syms, symbol_table_size);
     
     if (fwrite (&string_table_pos, sizeof (string_table_pos), 1, outfile) != 1) {
     

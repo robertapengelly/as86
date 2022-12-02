@@ -13,8 +13,8 @@
 #include    "pseudo_ops.h"
 #include    "report.h"
 #include    "section.h"
+#include    "stdint.h"
 #include    "symbol.h"
-#include    "types.h"
 
 static int output_relocation (FILE *outfile, struct fixup *fixup) {
 
