@@ -318,7 +318,7 @@ void aout_write_object (void) {
             
             }
             
-            if (!symbol_is_section_symbol (symbol)) {
+            if (symbol_is_external (symbol) || symbol_is_undefined (symbol)) {
                 symbol_entry.n_type |= N_EXT;
             }
             
