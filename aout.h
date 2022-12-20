@@ -45,8 +45,8 @@ struct nlist {
     unsigned char n_strx[4];
     unsigned char n_type;
     
-    char n_other;
-    char n_desc[2];
+    unsigned char n_other;
+    unsigned char n_desc[2];
     
     unsigned char n_value[4];
 
