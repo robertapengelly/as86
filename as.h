@@ -15,6 +15,13 @@ struct proc {
 
 };
 
+struct seg {
+
+    char *name;
+    int bits;
+
+};
+
 struct as_state {
 
     char **defs, **files, **inc_paths;
@@ -24,7 +31,7 @@ struct as_state {
     int nowarn, model;
     
     const char *sym_start, *end_sym;
-    struct vector procs;
+    struct vector procs, segs;
 
 };
 

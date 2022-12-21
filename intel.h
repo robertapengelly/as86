@@ -174,6 +174,7 @@ char *machine_dependent_assemble_line (char *line);
 
 int machine_dependent_force_relocation_local (fixup_t fixup);
 int machine_dependent_get_bits (void);
+int machine_dependent_get_cpu (void);
 int machine_dependent_is_register (const char *p);
 int machine_dependent_need_index_operator (void);
 int machine_dependent_parse_name (char **pp, struct expr *expr, char *name, char *original_saved_c);
@@ -187,5 +188,7 @@ void machine_dependent_apply_fixup (fixup_t fixup, unsigned long value);
 void machine_dependent_finish_frag (frag_t frag);
 void machine_dependent_init (void);
 void machine_dependent_parse_operand (char **pp, struct expr *expr);
+void machine_dependent_set_bits (int bits);
+void machine_dependent_set_cpu (int bits);
 
 #endif      /* _INTEL_H */

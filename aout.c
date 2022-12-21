@@ -9,6 +9,8 @@
 #include    "aout.h"
 #include    "as.h"
 #include    "frag.h"
+#include    "intel.h"
+#include    "lib.h"
 #include    "pseudo_ops.h"
 #include    "report.h"
 #include    "section.h"
@@ -423,16 +425,86 @@ out:
 
 }
 
+extern const char is_end_of_line[];
+extern char get_symbol_name_end (char **pp);
+
+static void handler_masm_segment (char **pp) {
+
+    char *arg, saved_ch;
+    
+    for (;;) {
+    
+        *pp = skip_whitespace (*pp);
+        
+        if (is_end_of_line[(int) **pp]) {
+            break;
+        }
+        
+        if (**pp == '\'') {
+        
+            arg = ++(*pp);
+            
+            while (!is_end_of_line[(int) **pp] && **pp != '\'') {
+                (*pp)++;
+            }
+            
+            saved_ch = **pp;
+            **pp = '\0';
+        
+        } else {
+        
+            arg = *pp;
+            saved_ch = get_symbol_name_end (pp);
+        
+        }
+        
+        if (xstrcasecmp (arg, "use16") == 0) {
+        
+            int32_t last = state->segs.length - 1;
+            
+            struct seg *seg = state->segs.data[last];
+            seg->bits = machine_dependent_get_bits ();
+            
+            machine_dependent_set_bits (16);
+        
+        } else if (xstrcasecmp (arg, "use32") == 0) {
+        
+            int32_t last = state->procs.length - 1;
+            
+            struct seg *seg = state->segs.data[last];
+            seg->bits = machine_dependent_get_bits ();
+            
+            machine_dependent_set_bits (32);
+        
+        } else if (xstrcasecmp (arg, "code") == 0) {
+            section_set_by_name (".text");
+        } else if (xstrcasecmp (arg, "data") == 0) {
+            section_set_by_name (".data");
+        } else if (xstrcasecmp (arg, "bss") == 0) {
+            section_set_by_name (".bss");
+        }
+        
+        **pp = saved_ch;
+        
+        if (**pp == '\'') {
+            (*pp)++;
+        }
+    
+    }
+
+}
+
 static struct pseudo_op pseudo_ops[] = {
 
-    { ".bss",           handler_bss         },
-    { ".data?",         handler_bss         },
-    { ".section",       handler_segment     },
+    { ".bss",           handler_bss             },
+    { ".data?",         handler_bss             },
+    { ".section",       handler_segment         },
     
-    { "section",        handler_segment     },
-    { "segment",        handler_segment     },
+    { "section",        handler_segment         },
+    { "segment",        handler_segment         },
     
-    { NULL,             NULL                }
+    { "masm_segment",   handler_masm_segment    },
+    { NULL,             NULL                    }
 
 };
 

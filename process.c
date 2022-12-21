@@ -794,7 +794,7 @@ int process_file (const char *fname) {
             
             saved_ch = get_symbol_name_end (&line);
             
-            if (xstrcasecmp (start_p, ".stack") == 0 || xstrcasecmp (start_p, "extern") == 0 || xstrcasecmp (start_p, "extrn") == 0) {
+            if (xstrcasecmp (start_p, "assume") == 0 || xstrcasecmp (start_p, "dgroup") == 0 || xstrcasecmp (start_p, ".stack") == 0 || xstrcasecmp (start_p, "extern") == 0 || xstrcasecmp (start_p, "extrn") == 0) {
             
                 report (REPORT_WARNING, "%s unimplemented; ignored", start_p);
                 *line = saved_ch;
@@ -1133,6 +1133,50 @@ int process_file (const char *fname) {
                     
                     }
                     
+                    if (xstrcasecmp (temp_start_p, "segment") == 0) {
+                    
+                        struct seg *seg = xmalloc (sizeof (*seg));
+                        seg->name = xstrdup (start_p);
+                        
+                        vec_push (&state->segs, seg);
+                        line = skip_whitespace (temp_line + 1);
+                        
+                        if ((poe = find_pseudo_op ("masm_segment")) != NULL) {
+                            (poe->handler) (&line);
+                        }
+                        
+                        continue;
+                    
+                    }
+                    
+                    if (xstrcasecmp (temp_start_p, "ends") == 0) {
+                    
+                        if (state->segs.length == 0) {
+                            report (REPORT_ERROR, "block nesting error");
+                        } else {
+                        
+                            int32_t last = state->segs.length - 1;
+                            struct seg *seg = state->segs.data[last];
+                            
+                            if (strcmp (start_p, seg->name)) {
+                                report (REPORT_ERROR, "segment name does not match");
+                            } else {
+                            
+                                machine_dependent_set_bits (seg->bits);
+                                state->segs.length = last;
+                            
+                            }
+                        
+                        }
+                        
+                        *temp_line = temp_ch;
+                        line = temp_line;
+                        
+                        demand_empty_rest_of_line (&line);
+                        continue;
+                    
+                    }
+                    
                     *temp_line = temp_ch;
                 
                 }
@@ -1233,6 +1277,13 @@ int process_file (const char *fname) {
     
         struct proc *proc = (struct proc *) state->procs.data[i];
         report (REPORT_ERROR, "procedure %s is not closed", proc->name);
+    
+    }
+    
+    for (i = 0; i < state->segs.length; ++i) {
+    
+        struct seg *seg = (struct seg *) state->segs.data[i];
+        report (REPORT_ERROR, "segment %s is not closed", seg->name);
     
     }
     

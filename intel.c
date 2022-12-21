@@ -94,6 +94,7 @@ static char register_chars_table[256] = { 0 };
 #define     EXPR_TYPE_OFFSET            EXPR_TYPE_MACHINE_DEPENDENT_6
 #define     EXPR_TYPE_FULL_PTR          EXPR_TYPE_MACHINE_DEPENDENT_7
 #define     EXPR_TYPE_NEAR_PTR          EXPR_TYPE_MACHINE_DEPENDENT_8
+#define     EXPR_TYPE_FAR_PTR           EXPR_TYPE_MACHINE_DEPENDENT_9
 
 struct intel_type {
 
@@ -109,6 +110,8 @@ static const struct intel_type intel_types[] = {
 #define INTEL_TYPE(name, size) { #name, EXPR_TYPE_##name##_PTR, size }
     
     INTEL_TYPE (NEAR, 0),
+    INTEL_TYPE (FAR, 0),
+    
     INTEL_TYPE (BYTE, 1),
     INTEL_TYPE (WORD, 2),
     INTEL_TYPE (DWORD, 4),
@@ -1191,6 +1194,7 @@ static struct pseudo_op pseudo_ops[] = {
     { ".186",       handler_186     },
     { ".286",       handler_286     },
     { ".386",       handler_386     },
+    { ".387",       handler_386     },
     { ".486",       handler_486     },
     { ".586",       handler_586     },
     { ".686",       handler_686     },
@@ -2936,6 +2940,7 @@ static int intel_simplify_expr (struct expr *expr) {
             break;
         
         case EXPR_TYPE_NEAR_PTR:
+        case EXPR_TYPE_FAR_PTR:
         
             if (!intel_simplify_symbol (expr->add_symbol)) {
                 return 0;
@@ -3082,6 +3087,7 @@ static int intel_parse_operand (char *operand_string) {
                 
                 /* fall through */
             
+            case EXPR_TYPE_FAR_PTR:
             case EXPR_TYPE_NEAR_PTR:
             case EXPR_TYPE_WORD_PTR:
             
@@ -3100,7 +3106,7 @@ static int intel_parse_operand (char *operand_string) {
                 } else if (intel_float_suffix_translation (current_templates->name) == 1) {
                     suffix = SHORT_SUFFIX;
                 } else {
-                    suffix = DWORD_SUFFIX;
+                    suffix = (bits == 32) ? DWORD_SUFFIX : WORD_SUFFIX;
                 }
                 
                 break;
@@ -4200,6 +4206,10 @@ int machine_dependent_get_bits (void) {
     return bits;
 }
 
+int machine_dependent_get_cpu (void) {
+    return cpu_level;
+}
+
 int machine_dependent_is_register (const char *p) {
 
     struct hashtab_name *key;
@@ -4695,6 +4705,26 @@ void machine_dependent_parse_operand (char **pp, struct expr *expr) {
             
             break;
     
+    }
+
+}
+
+void machine_dependent_set_bits (int new_bits) {
+
+    if (new_bits != 16 && new_bits != 32) {
+        report_at (NULL, 0, REPORT_ERROR, "bits must either be 16 or 32");
+    } else {
+        bits = new_bits;
+    }
+
+}
+
+void machine_dependent_set_cpu (int level) {
+
+    if (level < 0 || level > 6) {
+        report_at (NULL, 0, REPORT_ERROR, "invalid cpu level provided");
+    } else {
+        cpu_level = level;
     }
 
 }
