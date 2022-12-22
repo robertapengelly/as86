@@ -170,6 +170,8 @@ struct sib_byte {
 #include    "types.h"
 
 enum expr_type machine_dependent_parse_operator (char **pp, char *name, char *original_saved_c, uint32_t operands);
+section_t machine_dependent_simplified_expression_read_into (char **pp, struct expr *expr);
+
 char *machine_dependent_assemble_line (char *line);
 
 int machine_dependent_force_relocation_local (fixup_t fixup);

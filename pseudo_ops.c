@@ -9,6 +9,7 @@
 #include    "fixup.h"
 #include    "frag.h"
 #include    "hashtab.h"
+#include    "intel.h"
 #include    "macro.h"
 #include    "lib.h"
 #include    "pseudo_ops.h"
@@ -59,7 +60,7 @@ static void do_org (section_t section, struct expr *expr, unsigned long fill_val
 
 static section_t get_known_section_expression (char **pp, struct expr *expr) {
 
-    section_t section = expression_read_into (pp, expr);
+    section_t section = machine_dependent_simplified_expression_read_into (pp, expr);
     
     if (expr->type == EXPR_TYPE_INVALID || expr->type == EXPR_TYPE_ABSENT) {
     
@@ -94,7 +95,7 @@ static section_t get_known_section_expression (char **pp, struct expr *expr) {
 static void internal_set (char **pp, struct symbol *symbol) {
 
     struct expr expr;
-    expression_read_into (pp, &expr);
+    machine_dependent_simplified_expression_read_into (pp, &expr);
     
     if (expr.type == EXPR_TYPE_INVALID) {
         report (REPORT_ERROR, "invalid expression");
@@ -230,7 +231,7 @@ static void handler_constant (char **pp, int size, int is_rva) {
             *tmp++ = '0';
         }
         
-        expression_read_into (pp, &expr);
+        machine_dependent_simplified_expression_read_into (pp, &expr);
         
         tmp = (*pp = skip_whitespace (*pp));
         saved_ch = get_symbol_name_end (pp);
@@ -648,12 +649,12 @@ static void handler_space (char **pp) {
     struct expr expr, val;
     offset_t repeat;
     
-    expression_read_into (pp, &expr);
+    machine_dependent_simplified_expression_read_into (pp, &expr);
     
     if (**pp == ',') {
     
         ++(*pp);
-        expression_read_into (pp, &val);
+        machine_dependent_simplified_expression_read_into (pp, &val);
         
         if (val.type != EXPR_TYPE_CONSTANT) {
         

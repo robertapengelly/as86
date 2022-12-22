@@ -2743,7 +2743,7 @@ static int intel_process_register_expr (struct expr *expr) {
 
     int32_t reg_num = expr->add_number;
     
-    if (intel_state.in_offset) {
+    if (intel_state.in_offset || instruction.operands < 0) {
     
         report (REPORT_ERROR, "invalid use of register");
         return 0;
@@ -4065,6 +4065,38 @@ enum expr_type machine_dependent_parse_operator (char **pp, char *name, char *or
     }
     
     return EXPR_TYPE_ABSENT;
+
+}
+
+section_t machine_dependent_simplified_expression_read_into (char **pp, struct expr *expr) {
+
+    int ret;
+    section_t ret_section;
+    
+    if (!intel_syntax) {
+        return expression_read_into (pp, expr);
+    }
+    
+    memset (&intel_state, 0, sizeof (intel_state));
+    intel_state.operand_modifier = EXPR_TYPE_ABSENT;
+    
+    instruction.operands = -1;
+    
+    intel_syntax = -1;
+    
+    ret_section = expression_read_into (pp, expr);
+    ret = intel_simplify_expr (expr);
+    
+    intel_syntax = 1;
+    
+    if (!ret) {
+    
+        report (REPORT_ERROR, "bad machine-dependent expression");
+        expr->type = EXPR_TYPE_INVALID;
+    
+    }
+    
+    return ret_section;
 
 }
 
