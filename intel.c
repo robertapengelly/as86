@@ -3105,8 +3105,10 @@ static int intel_parse_operand (char *operand_string) {
                     suffix = INTEL_SUFFIX;
                 } else if (intel_float_suffix_translation (current_templates->name) == 1) {
                     suffix = SHORT_SUFFIX;
+                } else if (strcmp (current_templates->name, "lds") == 0 || strcmp (current_templates->name, "les") == 0 || strcmp (current_templates->name, "lfs") == 0 || strcmp (current_templates->name, "lgs") == 0 || strcmp (current_templates->name, "lss") == 0) {
+                    suffix = WORD_SUFFIX;
                 } else {
-                    suffix = (bits == 32) ? DWORD_SUFFIX : WORD_SUFFIX;
+                    suffix = DWORD_SUFFIX;
                 }
                 
                 break;
