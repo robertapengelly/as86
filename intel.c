@@ -4632,6 +4632,20 @@ void machine_dependent_init (void) {
     
     for (reg_entry = reg_table; reg_entry->name; ++reg_entry) {
     
+        if (reg_entry->type & FLOAT_REG) {
+        
+            if (!(reg_entry->type & FLOAT_ACC)) {
+                continue;
+            }
+            
+            reg_st0 = reg_entry;
+        
+        }
+        
+        if ((reg_entry->type & REG32) && reg_entry->number == 4) {
+            reg_esp = reg_entry;
+        }
+        
         if ((key = hashtab_alloc_name (reg_entry->name)) == NULL) {
             continue;
         }
@@ -4648,20 +4662,6 @@ void machine_dependent_init (void) {
             free (key);
             continue;
         
-        }
-        
-        if (reg_entry->type == FLOAT_REG) {
-        
-            if (!(reg_entry->type == FLOAT_ACC)) {
-                continue;
-            }
-            
-            reg_st0 = reg_entry;
-        
-        }
-        
-        if ((reg_entry->type & REG32) && reg_entry->number == 4) {
-            reg_esp = reg_entry;
         }
     
     }
