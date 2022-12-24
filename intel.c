@@ -1516,14 +1516,14 @@ static int process_suffix (void) {
         
         if (suffixes & (suffixes - 1)) {
         
-            if (intel_syntax) {
+            /*if (intel_syntax) {
                 
                 report (REPORT_ERROR, "ambiguous operand size for '%s'", instruction.template.name);
                 return 1;
                 
             }
             
-            report (REPORT_WARNING, "%s, using default for '%s'", intel_syntax ? "ambiguous operand size" : "no instruction mnemonic suffix given and no register operands", instruction.template.name);
+            report (REPORT_WARNING, "%s, using default for '%s'", intel_syntax ? "ambiguous operand size" : "no instruction mnemonic suffix given and no register operands", instruction.template.name);*/
             
             if (instruction.template.opcode_modifier & FLOAT_MF) {
                 instruction.suffix = SHORT_SUFFIX;
