@@ -469,7 +469,7 @@ static void handler_masm_segment (char **pp) {
         
         } else if (xstrcasecmp (arg, "use32") == 0) {
         
-            int32_t last = state->procs.length - 1;
+            int32_t last = state->segs.length - 1;
             
             struct seg *seg = state->segs.data[last];
             seg->bits = machine_dependent_get_bits ();

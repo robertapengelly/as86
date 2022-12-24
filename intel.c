@@ -1199,6 +1199,11 @@ static struct pseudo_op pseudo_ops[] = {
     { ".586",       handler_586     },
     { ".686",       handler_686     },
     
+    { ".386p",      handler_386     },
+    { ".486p",      handler_486     },
+    { ".586p",      handler_586     },
+    { ".686p",      handler_686     },
+    
     { ".code16",    handler_code16  },
     { ".code32",    handler_code32  },
     
