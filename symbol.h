@@ -23,7 +23,7 @@ struct symbol {
     struct symbol *next;
     
     unsigned long symbol_table_index;
-    int resolved, resolving, write_name_to_string_table;
+    int resolved, resolving, size, write_name_to_string_table;
     
     void *object_format_dependent_data;
 
@@ -66,6 +66,7 @@ void symbol_add_to_chain (struct symbol *symbol);
 void symbol_set_external (struct symbol *symbol);
 void symbol_set_frag (struct symbol *symbol, frag_t frag);
 void symbol_set_section (struct symbol *symbol, section_t section);
+void symbol_set_size (int size);
 void symbol_set_symbol_table_index (struct symbol *symbol, unsigned long index);
 void symbol_set_value (struct symbol *symbol, value_t value);
 void symbol_set_value_expression (struct symbol *symbol, struct expr *expr);

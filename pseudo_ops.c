@@ -211,6 +211,8 @@ static void handler_constant (char **pp, int size, int is_rva) {
     char saved_ch, *tmp;
     int i;
     
+    symbol_set_size (size);
+    
     do {
     
         if (**pp == '"' || **pp == '\'') {

@@ -1117,7 +1117,7 @@ static void handler_386 (char **pp) {
     (void) pp;
     
     cpu_level = 3;
-    bits = 32;
+    if (state->model > 2) { bits = 32; }
 
 }
 
@@ -1126,7 +1126,7 @@ static void handler_486 (char **pp) {
     (void) pp;
     
     cpu_level = 4;
-    bits = 32;
+    if (state->model > 2) { bits = 32; }
 
 }
 
@@ -1135,7 +1135,7 @@ static void handler_586 (char **pp) {
     (void) pp;
     
     cpu_level = 5;
-    bits = 32;
+    if (state->model > 2) { bits = 32; }
 
 }
 
@@ -1144,7 +1144,7 @@ static void handler_686 (char **pp) {
     (void) pp;
     
     cpu_level = 6;
-    bits = 32;
+    if (state->model > 2) { bits = 32; }
 
 }
 
@@ -1493,7 +1493,24 @@ static int process_suffix (void) {
         }
     
     }
-                                          
+    
+    if (!instruction.suffix && instruction.template.base_opcode == 0xC6) {
+    
+        int32_t op;
+        
+        for (op = instruction.operands; --op >= 0; ) {
+        
+            if (instruction.types[op] & ANY_MEM && instruction.disps[op]->add_symbol != NULL) {
+            
+                instruction.suffix = ((instruction.disps[op]->add_symbol->size == 1) ? BYTE_SUFFIX : (instruction.disps[op]->add_symbol->size == 2) ? WORD_SUFFIX : DWORD_SUFFIX);
+                break;
+            
+            }
+        
+        }
+    
+    }
+    
     if (!instruction.suffix && !(instruction.template.opcode_modifier & IGNORE_SIZE) && !(instruction.template.opcode_modifier & DEFAULT_SIZE) /* Explicit data size prefix allows determining the size. */ && !instruction.prefixes[DATA_PREFIX] /* fldenv and similar instructions do not require a suffix. */ && ((instruction.template.opcode_modifier & NO_SSUF) || (instruction.template.opcode_modifier & FLOAT_MF))) {
     
         int32_t suffixes = !(instruction.template.opcode_modifier & NO_BSUF);
@@ -1516,14 +1533,14 @@ static int process_suffix (void) {
         
         if (suffixes & (suffixes - 1)) {
         
-            /*if (intel_syntax) {
+            if (intel_syntax) {
                 
                 report (REPORT_ERROR, "ambiguous operand size for '%s'", instruction.template.name);
                 return 1;
                 
             }
             
-            report (REPORT_WARNING, "%s, using default for '%s'", intel_syntax ? "ambiguous operand size" : "no instruction mnemonic suffix given and no register operands", instruction.template.name);*/
+            report (REPORT_WARNING, "%s, using default for '%s'", intel_syntax ? "ambiguous operand size" : "no instruction mnemonic suffix given and no register operands", instruction.template.name);
             
             if (instruction.template.opcode_modifier & FLOAT_MF) {
                 instruction.suffix = SHORT_SUFFIX;

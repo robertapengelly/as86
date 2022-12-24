@@ -768,6 +768,20 @@ void symbol_set_section (struct symbol *symbol, section_t section) {
     symbol->section = section;
 }
 
+void symbol_set_size (int size) {
+
+    struct symbol *symbol;
+    
+    for (symbol = symbols; symbol->next; symbol = symbol->next);
+    
+    if (symbol == NULL) {
+        return;
+    }
+    
+    symbol->size = size;
+
+}
+
 void symbol_set_symbol_table_index (struct symbol *symbol, unsigned long index) {
     symbol->symbol_table_index = index;
 }
