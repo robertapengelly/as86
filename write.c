@@ -494,8 +494,6 @@ void write_object_file (struct object_format *obj_fmt) {
                 if (strcmp (symbol->name, state->end_sym) == 0) {
                 
                     val = symbol_get_value (symbol);
-                    
-                    symbols = symbol;
                     break;
                 
                 }
