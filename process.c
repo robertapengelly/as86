@@ -794,7 +794,40 @@ int process_file (const char *fname) {
             
             saved_ch = get_symbol_name_end (&line);
             
-            if (xstrcasecmp (start_p, "assume") == 0 || xstrcasecmp (start_p, "dgroup") == 0 || xstrcasecmp (start_p, ".stack") == 0 || xstrcasecmp (start_p, "extern") == 0 || xstrcasecmp (start_p, "extrn") == 0) {
+            if (xstrcasecmp (start_p, "extern") == 0 || xstrcasecmp (start_p, "extrn") == 0) {
+            
+                struct hashtab_name *key;
+                line = skip_whitespace (line + 1);
+                
+                start_p = line;
+                saved_ch = get_symbol_name_end (&line);
+                
+                if ((key = hashtab_alloc_name (xstrdup (start_p))) == NULL) {
+                
+                    report_at (program_name, 0, REPORT_ERROR, "memory full (malloc)");
+                    goto next;
+                
+                }
+                
+                if (hashtab_get (&state->hashtab_externs, key) != NULL) {
+                
+                    free (key);
+                    
+                    report_at (program_name, 0, REPORT_ERROR, "hashtab collision");
+                    goto next;
+                
+                }
+                
+                hashtab_put (&state->hashtab_externs, key, xstrdup (start_p));
+            
+            next:
+            
+                *line = saved_ch;
+                
+                ignore_rest_of_line (&line);
+                continue;
+            
+            } else if (xstrcasecmp (start_p, "assume") == 0 || xstrcasecmp (start_p, "dgroup") == 0 || xstrcasecmp (start_p, ".stack") == 0) {
             
                 report (REPORT_WARNING, "%s unimplemented; ignored", start_p);
                 *line = saved_ch;

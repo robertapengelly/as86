@@ -297,8 +297,26 @@ void aout_write_object (void) {
             
             write741_to_byte_array (symbol_entry.n_strx, string_table_pos);;
             
-            if (symbol_is_external (symbol) && state->sym_start) {
-                string_table_pos++;
+            if (state->sym_start) {
+            
+                if (symbol_is_external (symbol)) {
+                    string_table_pos++;
+                } else if (symbol_is_undefined (symbol)) {
+                
+                    struct hashtab_name *key;
+                    
+                    if ((key = hashtab_alloc_name (symbol->name)) != NULL) {
+                    
+                        if (hashtab_get (&state->hashtab_externs, key) != NULL) {
+                            string_table_pos++;
+                        }
+                        
+                        free (key);
+                    
+                    }
+                
+                }
+            
             }
             
             string_table_pos += strlen (symbol->name) + 1;
@@ -352,12 +370,37 @@ void aout_write_object (void) {
     
         if (!symbol_is_section_symbol (symbol)) {
         
-            if (symbol_is_external (symbol) && state->sym_start) {
+            if (state->sym_start) {
             
-                if (fwrite (state->sym_start, strlen (state->sym_start), 1, outfile) != 1) {
+                if (symbol_is_external (symbol)) {
                 
-                    report_at (NULL, 0, REPORT_ERROR, "Failed to write string table!");
-                    return;
+                    if (fwrite (state->sym_start, strlen (state->sym_start), 1, outfile) != 1) {
+                    
+                        report_at (NULL, 0, REPORT_ERROR, "Failed to write string table!");
+                        return;
+                    
+                    }
+                
+                } else if (symbol_is_undefined (symbol)) {
+                
+                    struct hashtab_name *key;
+                    
+                    if ((key = hashtab_alloc_name (symbol->name)) != NULL) {
+                    
+                        if (hashtab_get (&state->hashtab_externs, key) != NULL) {
+                        
+                            if (fwrite (state->sym_start, strlen (state->sym_start), 1, outfile) != 1) {
+                            
+                                report_at (NULL, 0, REPORT_ERROR, "Failed to write string table!");
+                                return;
+                            
+                            }
+                        
+                        }
+                        
+                        free (key);
+                    
+                    }
                 
                 }
             

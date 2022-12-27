@@ -22,6 +22,8 @@ struct seg {
 
 };
 
+#include    "hashtab.h"
+
 struct as_state {
 
     char **defs, **files, **inc_paths;
@@ -32,6 +34,8 @@ struct as_state {
     
     const char *sym_start, *end_sym;
     struct vector procs, segs;
+    
+    struct hashtab hashtab_externs;
 
 };
 
