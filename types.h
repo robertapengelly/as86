@@ -26,6 +26,7 @@ typedef     uint32_t                relax_subtype_t;
 typedef enum {
 
     RELOC_TYPE_DEFAULT,
+    RELOC_TYPE_CALL,
     RELOC_TYPE_RVA
 
 } reloc_type_t;

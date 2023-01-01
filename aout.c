@@ -21,12 +21,12 @@
 void aout_adjust_code (void) {
 
     struct frag *frag;
-    unsigned long address, text_section_size;
+    unsigned long address;
     
     section_set (text_section);
     
-    text_section_size = current_frag_chain->last_frag->address + current_frag_chain->last_frag->fixed_size;
-    address = text_section_size;
+    state->text_section_size = current_frag_chain->last_frag->address + current_frag_chain->last_frag->fixed_size;
+    address = state->text_section_size;
     
     section_set (data_section);
     
@@ -48,6 +48,71 @@ void aout_adjust_code (void) {
 
 }
 
+static int output_relocation (FILE *outfile, struct fixup *fixup, unsigned long start_address_of_section) {
+
+    struct relocation_info reloc;
+    
+    int32_t log2_of_size, size;
+    uint32_t r_symbolnum;
+    
+    write741_to_byte_array (reloc.r_address, fixup->frag->address + fixup->where - start_address_of_section);
+    
+    if (symbol_is_section_symbol (fixup->add_symbol)) {
+    
+        if (symbol_get_section (fixup->add_symbol) == text_section) {
+            r_symbolnum = N_TEXT;
+        } else if (symbol_get_section (fixup->add_symbol) == data_section) {
+            r_symbolnum = N_DATA;
+        } else if (symbol_get_section (fixup->add_symbol) == bss_section) {
+            r_symbolnum = N_BSS;
+        } else {
+            report_at (__FILE__, __LINE__, REPORT_INTERNAL_ERROR, "invalid section %s", section_get_name (symbol_get_section (fixup->add_symbol)));
+        }
+    
+    } else {
+    
+        struct symbol *symbol;
+        int32_t symbol_number;
+        
+        for (symbol = symbols, symbol_number = 0; symbol && (symbol != fixup->add_symbol); symbol = symbol->next) {
+        
+            if (symbol_is_section_symbol (symbol)) {
+                continue;
+            }
+            
+            if (!state->keep_locals && *symbol->name == 'L') {
+                continue;
+            }
+            
+            symbol_number++;
+        
+        }
+        
+        r_symbolnum  = symbol_number;
+        r_symbolnum |= 1L << 27;
+    
+    }
+    
+    if (fixup->pcrel) {
+        r_symbolnum |= 1L << 24;
+    }
+    
+    for (log2_of_size = -1, size = fixup->size; size; size >>= 1, log2_of_size++);
+    r_symbolnum |= (uint32_t) log2_of_size << 25;
+    
+    write741_to_byte_array (reloc.r_symbolnum, r_symbolnum);
+    
+    if (fwrite (&reloc, sizeof (reloc), 1, outfile) != 1) {
+    
+        report_at (NULL, 0, REPORT_ERROR, "Error writing text relocations!");
+        return 1;
+    
+    }
+    
+    return 0;
+
+}
+
 void aout_write_object (void) {
 
     struct exec header;
@@ -59,12 +124,11 @@ void aout_write_object (void) {
     struct symbol *symbol;
     unsigned long symbol_table_size;
     
+    int32_t string_table_pos;
     FILE *outfile;
-    uint32_t string_table_pos = 4;
     
     uint32_t a_text, a_data, a_bss;
     uint32_t a_trsize, a_drsize;
-    uint32_t r_symbolnum;
     
     memset (&header, 0, sizeof (header));
     write741_to_byte_array (header.a_info, 0x00640000 | OMAGIC);
@@ -153,57 +217,8 @@ void aout_write_object (void) {
             continue;
         }
         
-        write741_to_byte_array ((unsigned char *) reloc.r_address, fixup->frag->address + fixup->where);
-        
-        if (symbol_is_section_symbol (fixup->add_symbol)) {
-        
-            if (symbol_get_section (fixup->add_symbol) == text_section) {
-                r_symbolnum = N_TEXT;
-            } else if (symbol_get_section (fixup->add_symbol) == data_section) {
-                r_symbolnum = N_DATA;
-            } else if (symbol_get_section (fixup->add_symbol) == bss_section) {
-                r_symbolnum = N_BSS;
-            } else {
-                report_at (NULL, 0, REPORT_ERROR, "Undefined section");
-            }
-        
-        } else {
-        
-            struct symbol *symbol;
-            int32_t symbol_number;
-            
-            for (symbol = symbols, symbol_number = 0; symbol && (symbol != fixup->add_symbol); symbol = symbol->next) {
-            
-                if (!symbol_is_section_symbol (symbol)) {
-                    symbol_number++;
-                }
-            
-            }
-            
-            r_symbolnum  = symbol_number;
-            r_symbolnum |= 1L << 27;
-        
-        }
-        
-        r_symbolnum |= fixup->pcrel << 24;
-        /*reloc.r_symbolnum |= (!!(fixup->pcrel)) << 24;*/
-        
-        {
-        
-            int32_t log2_of_size, size;
-            
-            for (log2_of_size = -1, size = fixup->size; size; size >>= 1, log2_of_size++);
-            r_symbolnum |= log2_of_size << 25;
-        
-        }
-        
-        write741_to_byte_array (reloc.r_symbolnum, r_symbolnum);
-        
-        if (fwrite (&reloc, sizeof (reloc), 1, outfile) != 1) {
-        
-            report_at (NULL, 0, REPORT_ERROR, "Error writing text relocations!");
+        if (output_relocation (outfile, fixup, 0)) {
             return;
-        
         }
         
         a_trsize += sizeof (reloc);
@@ -225,60 +240,8 @@ void aout_write_object (void) {
             continue;
         }
         
-        write741_to_byte_array (reloc.r_address, fixup->frag->address + fixup->where - start_address_of_data);
-        
-        if (symbol_is_section_symbol (fixup->add_symbol)) {
-        
-            if (symbol_get_section (fixup->add_symbol) == text_section) {
-                r_symbolnum = N_TEXT;
-            } else if (symbol_get_section (fixup->add_symbol) == data_section) {
-                r_symbolnum = N_DATA;
-            } else if (symbol_get_section (fixup->add_symbol) == bss_section) {
-                r_symbolnum = N_BSS;
-            } else {
-            
-                report_at (__FILE__, __LINE__, REPORT_INTERNAL_ERROR, "invalid section %s", section_get_name (symbol_get_section (fixup->add_symbol)));
-                exit (EXIT_FAILURE);
-            
-            }
-        
-        } else {
-        
-            struct symbol *symbol;
-            int32_t symbol_number;
-            
-            for (symbol = symbols, symbol_number = 0; symbol && (symbol != fixup->add_symbol); symbol = symbol->next) {
-            
-                if (!symbol_is_section_symbol (symbol)) {
-                    symbol_number++;
-                }
-            
-            }
-            
-            r_symbolnum  = symbol_number;
-            r_symbolnum |= 1L << 27;
-        
-        }
-        
-        r_symbolnum |= fixup->pcrel << 24;
-        /*reloc.r_symbolnum |= (!!(fixup->pcrel)) << 24;*/
-        
-        {
-        
-            int32_t log2_of_size, size;
-            
-            for (log2_of_size = -1, size = fixup->size; size; size >>= 1, log2_of_size++);
-            r_symbolnum |= log2_of_size << 25;
-        
-        }
-        
-        write741_to_byte_array (reloc.r_symbolnum, r_symbolnum);
-        
-        if (fwrite (&reloc, sizeof (reloc), 1, outfile) != 1) {
-        
-            report_at (NULL, 0, REPORT_ERROR, "Error writing data relocations!");
+        if (output_relocation (outfile, fixup, start_address_of_data)) {
             return;
-        
         }
         
         a_drsize += sizeof (reloc);
@@ -286,74 +249,77 @@ void aout_write_object (void) {
     }
     
     write741_to_byte_array (header.a_drsize, a_drsize);
+    
     symbol_table_size = 0;
+    string_table_pos = 4;
     
     for (symbol = symbols; symbol; symbol = symbol->next) {
     
-        if (!symbol_is_section_symbol (symbol)) {
+        struct nlist symbol_entry;
+        memset (&symbol_entry, 0, sizeof (symbol_entry));
         
-            struct nlist symbol_entry;
-            memset (&symbol_entry, 0, sizeof (symbol_entry));
+        if (symbol_is_section_symbol (symbol)) {
+            continue;
+        }
+        
+        if (!state->keep_locals && *symbol->name == 'L') {
+            continue;
+        }
+        
+        write741_to_byte_array (symbol_entry.n_strx, string_table_pos);
+        
+        if (state->sym_start) {
+        
+            if (symbol_is_external (symbol)) {
+                string_table_pos++;
+            } else if (symbol_is_undefined (symbol)) {
             
-            write741_to_byte_array (symbol_entry.n_strx, string_table_pos);;
-            
-            if (state->sym_start) {
-            
-                if (symbol_is_external (symbol)) {
-                    string_table_pos++;
-                } else if (symbol_is_undefined (symbol)) {
+                struct hashtab_name *key;
                 
-                    struct hashtab_name *key;
-                    
-                    if ((key = hashtab_alloc_name (symbol->name)) != NULL) {
-                    
-                        if (hashtab_get (&state->hashtab_externs, key) != NULL) {
-                            string_table_pos++;
-                        }
-                        
-                        free (key);
-                    
+                if ((key = hashtab_alloc_name (symbol->name)) != NULL) {
+                
+                    if (hashtab_get (&state->hashtab_externs, key) != NULL) {
+                        string_table_pos++;
                     }
+                    
+                    free (key);
                 
                 }
             
             }
-            
-            string_table_pos += strlen (symbol->name) + 1;
-            
-            if (symbol->section == undefined_section) {
-                symbol_entry.n_type = N_UNDF;
-            } else if (symbol->section == text_section) {
-                symbol_entry.n_type = N_TEXT;
-            } else if (symbol->section == data_section) {
-                symbol_entry.n_type = N_DATA;
-            } else if (symbol->section == bss_section) {
-                symbol_entry.n_type = N_BSS;
-            } else if (symbol->section == absolute_section) {
-                symbol_entry.n_type = N_ABS;
-            } else {
-            
-                report_at (__FILE__, __LINE__, REPORT_INTERNAL_ERROR, "invalid section %s", section_get_name (symbol->section));
-                exit (EXIT_FAILURE);
-            
-            }
-            
-            if (symbol_is_external (symbol) || symbol_is_undefined (symbol)) {
-                symbol_entry.n_type |= N_EXT;
-            }
-            
-            write741_to_byte_array (symbol_entry.n_value, symbol_get_value (symbol));
-            
-            if (fwrite (&symbol_entry, sizeof (symbol_entry), 1, outfile) != 1) {
-            
-                report_at (NULL, 0, REPORT_ERROR, "Error writing symbol table!");
-                return;
-            
-            }
-            
-            symbol_table_size += sizeof (symbol_entry);
         
         }
+        
+        string_table_pos += strlen (symbol->name) + 1;
+        
+        if (symbol->section == undefined_section) {
+            symbol_entry.n_type = N_UNDF;
+        } else if (symbol->section == text_section) {
+            symbol_entry.n_type = N_TEXT;
+        } else if (symbol->section == data_section) {
+            symbol_entry.n_type = N_DATA;
+        } else if (symbol->section == bss_section) {
+            symbol_entry.n_type = N_BSS;
+        } else if (symbol->section == absolute_section) {
+            symbol_entry.n_type = N_ABS;
+        } else {
+        
+            report_at (__FILE__, __LINE__, REPORT_INTERNAL_ERROR, "invalid section %s", section_get_name (symbol->section));
+            exit (EXIT_FAILURE);
+        
+        }
+        
+        symbol_entry.n_type |= N_EXT;
+        write741_to_byte_array (symbol_entry.n_value, symbol_get_value (symbol));
+        
+        if (fwrite (&symbol_entry, sizeof (symbol_entry), 1, outfile) != 1) {
+        
+            report_at (NULL, 0, REPORT_ERROR, "Error writing symbol table!");
+            return;
+        
+        }
+        
+        symbol_table_size += sizeof (symbol_entry);
     
     }
     
@@ -368,50 +334,54 @@ void aout_write_object (void) {
     
     for (symbol = symbols; symbol; symbol = symbol->next) {
     
-        if (!symbol_is_section_symbol (symbol)) {
+        if (symbol_is_section_symbol (symbol)) {
+            continue;
+        }
         
-            if (state->sym_start) {
+        if (!state->keep_locals && *symbol->name == 'L') {
+            continue;
+        }
+        
+        if (state->sym_start) {
+        
+            if (symbol_is_external (symbol)) {
             
-                if (symbol_is_external (symbol)) {
+                if (fwrite (state->sym_start, strlen (state->sym_start), 1, outfile) != 1) {
                 
-                    if (fwrite (state->sym_start, strlen (state->sym_start), 1, outfile) != 1) {
-                    
-                        report_at (NULL, 0, REPORT_ERROR, "Failed to write string table!");
-                        return;
-                    
-                    }
+                    report_at (NULL, 0, REPORT_ERROR, "Failed to write string table!");
+                    return;
                 
-                } else if (symbol_is_undefined (symbol)) {
+                }
+            
+            } else if (symbol_is_undefined (symbol)) {
+            
+                struct hashtab_name *key;
                 
-                    struct hashtab_name *key;
+                if ((key = hashtab_alloc_name (symbol->name)) != NULL) {
+                
+                    if (hashtab_get (&state->hashtab_externs, key) != NULL) {
                     
-                    if ((key = hashtab_alloc_name (symbol->name)) != NULL) {
-                    
-                        if (hashtab_get (&state->hashtab_externs, key) != NULL) {
+                        if (fwrite (state->sym_start, strlen (state->sym_start), 1, outfile) != 1) {
                         
-                            if (fwrite (state->sym_start, strlen (state->sym_start), 1, outfile) != 1) {
-                            
-                                report_at (NULL, 0, REPORT_ERROR, "Failed to write string table!");
-                                return;
-                            
-                            }
+                            report_at (NULL, 0, REPORT_ERROR, "Failed to write string table!");
+                            return;
                         
                         }
-                        
-                        free (key);
                     
                     }
+                    
+                    free (key);
                 
                 }
             
             }
-            
-            if (fwrite (symbol->name, strlen (symbol->name) + 1, 1, outfile) != 1) {
-            
-                report_at (NULL, 0, REPORT_ERROR, "Failed to write string table!");
-                return;
-            
-            }
+        
+        }
+        
+        if (fwrite (symbol->name, strlen (symbol->name) + 1, 1, outfile) != 1) {
+        
+            report_at (NULL, 0, REPORT_ERROR, "Failed to write string table!");
+            return;
         
         }
     

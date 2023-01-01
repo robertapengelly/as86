@@ -54,7 +54,7 @@ static void do_org (section_t section, struct expr *expr, unsigned long fill_val
     p_in_frag = frag_alloc_space (1);
     *p_in_frag = (unsigned char) fill_value;
     
-    frag_set_as_variant (RELAX_TYPE_ORG, 0, symbol, offset, 0);
+    frag_set_as_variant (RELAX_TYPE_ORG, 0, symbol, offset, 0, 0);
 
 }
 
@@ -319,7 +319,7 @@ static void handler_constant (char **pp, int size, int is_rva) {
                 unsigned char *p = frag_alloc_space (symbol_get_value (expr_symbol));
                 *p = val.add_number;
                 
-                frag_set_as_variant (RELAX_TYPE_SPACE, 0, expr_symbol, 0, 0);
+                frag_set_as_variant (RELAX_TYPE_SPACE, 0, expr_symbol, 0, 0, 0);
             
             }
             
@@ -356,7 +356,7 @@ static void handler_constant (char **pp, int size, int is_rva) {
         
         } else if (expr.type != EXPR_TYPE_INVALID) {
         
-            fixup_new_expr (current_frag, current_frag->fixed_size, size, &expr, 0, RELOC_TYPE_DEFAULT);
+            fixup_new_expr (current_frag, current_frag->fixed_size, size, &expr, 0, RELOC_TYPE_DEFAULT, 0);
             frag_increase_fixed_size (size);
         
         } else {
@@ -703,7 +703,7 @@ static void handler_space (char **pp) {
         unsigned char *p = frag_alloc_space (symbol_get_value (expr_symbol));
         *p = val.add_number;
         
-        frag_set_as_variant (RELAX_TYPE_SPACE, 0, expr_symbol, 0, 0);
+        frag_set_as_variant (RELAX_TYPE_SPACE, 0, expr_symbol, 0, 0, 0);
     
     }
     

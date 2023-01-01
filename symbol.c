@@ -183,7 +183,45 @@ struct symbol *symbol_find (const char *name) {
 
     struct symbol *symbol;
     
-    for (symbol = symbols; symbol && strcmp (symbol->name, name); symbol = symbol->next);
+    /* We need to skip DGROUP: in the provided name. */
+    const char *temp = name;
+    
+    if (strstart ("DGROUP", &temp)) {
+    
+        if (*temp && strcmp (temp, "__end") && strcmp (temp, "__edata")) {
+            name = temp + 1;
+        }
+    
+    }
+    
+    for (symbol = symbols; symbol && strcmp (symbol->name, name); symbol = symbol->next) {
+    
+        /**
+         * Okay, at this point we need to see if the symbol name starts with DGROUP:
+         * and replace the symbol name with the provided one if the the symbol
+         * name ends with the provided name.
+         */
+        temp = symbol->name;
+        
+        if (strstart ("DGROUP", &temp)) {
+        
+            if (!*temp || strcmp (temp, "__end") == 0 || strcmp (temp, "__edata") == 0) {
+                continue;
+            }
+            
+            if (strcmp (temp + 1, name) == 0) {
+            
+                free (symbol->name);
+                
+                symbol->name = xstrdup (name);
+                break;
+            
+            }
+        
+        }
+    
+    }
+    
     return symbol;
 
 }

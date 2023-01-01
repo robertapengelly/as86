@@ -30,12 +30,13 @@ struct as_state {
     unsigned long nb_defs, nb_files, nb_inc_paths;
     
     const char *format, *listing, *outfile;
-    int nowarn, model;
+    int nowarn, model, keep_locals;
     
     const char *sym_start, *end_sym;
     struct vector procs, segs;
     
     struct hashtab hashtab_externs;
+    unsigned long text_section_size;
 
 };
 

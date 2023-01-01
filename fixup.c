@@ -13,7 +13,7 @@
 #include    "symbol.h"
 #include    "types.h"
 
-static struct fixup *fixup_new_internal (struct frag *frag, unsigned long where, int32_t size, struct symbol *add_symbol, long add_number, int pcrel, reloc_type_t reloc_type) {
+static struct fixup *fixup_new_internal (struct frag *frag, unsigned long where, int32_t size, struct symbol *add_symbol, long add_number, int pcrel, reloc_type_t reloc_type, int far_call) {
 
     struct fixup *fixup = xmalloc (sizeof (*fixup));
     
@@ -25,6 +25,7 @@ static struct fixup *fixup_new_internal (struct frag *frag, unsigned long where,
     fixup->pcrel        = pcrel;
     fixup->reloc_type   = reloc_type;
     fixup->next         = NULL;
+    fixup->far_call     = far_call;
     
     if (current_frag_chain->last_fixup) {
     
@@ -39,11 +40,11 @@ static struct fixup *fixup_new_internal (struct frag *frag, unsigned long where,
 
 }
 
-struct fixup *fixup_new (struct frag *frag, unsigned long where, int32_t size, struct symbol *add_symbol, long add_number, int pcrel, reloc_type_t reloc_type) {
-    return fixup_new_internal (frag, where, size, add_symbol, add_number, pcrel, reloc_type);
+struct fixup *fixup_new (struct frag *frag, unsigned long where, int32_t size, struct symbol *add_symbol, long add_number, int pcrel, reloc_type_t reloc_type, int far_call) {
+    return fixup_new_internal (frag, where, size, add_symbol, add_number, pcrel, reloc_type, far_call);
 }
 
-struct fixup *fixup_new_expr (struct frag *frag, unsigned long where, int32_t size, struct expr *expr, int pcrel, reloc_type_t reloc_type) {
+struct fixup *fixup_new_expr (struct frag *frag, unsigned long where, int32_t size, struct expr *expr, int pcrel, reloc_type_t reloc_type, int far_call) {
 
     struct symbol *add_symbol = NULL;
     offset_t add_number = 0;
@@ -81,6 +82,6 @@ struct fixup *fixup_new_expr (struct frag *frag, unsigned long where, int32_t si
         
     }
     
-    return fixup_new_internal (frag, where, size, add_symbol, add_number, pcrel, reloc_type);
+    return fixup_new_internal (frag, where, size, add_symbol, add_number, pcrel, reloc_type, far_call);
 
 }

@@ -29,6 +29,7 @@ enum options {
     OPTION_FORMAT,
     OPTION_HELP,
     OPTION_INCLUDE,
+    OPTION_KEEP_LOCALS,
     OPTION_LISTING,
     OPTION_NOWARN,
     OPTION_OUTFILE
@@ -37,16 +38,18 @@ enum options {
 
 static struct option opts[] = {
 
-    { "D",          OPTION_DEFINE,      OPTION_HAS_ARG  },
-    { "I",          OPTION_INCLUDE,     OPTION_HAS_ARG  },
+    { "D",              OPTION_DEFINE,      OPTION_HAS_ARG  },
+    { "I",              OPTION_INCLUDE,     OPTION_HAS_ARG  },
+    { "L",              OPTION_KEEP_LOCALS, OPTION_NO_ARG   },
     
-    { "f",          OPTION_FORMAT,      OPTION_HAS_ARG  },
-    { "l",          OPTION_LISTING,     OPTION_HAS_ARG  },
-    { "o",          OPTION_OUTFILE,     OPTION_HAS_ARG  },
+    { "f",              OPTION_FORMAT,      OPTION_HAS_ARG  },
+    { "l",              OPTION_LISTING,     OPTION_HAS_ARG  },
+    { "o",              OPTION_OUTFILE,     OPTION_HAS_ARG  },
     
-    { "-nowarn",    OPTION_NOWARN,      OPTION_NO_ARG   },
-    { "-help",      OPTION_HELP,        OPTION_NO_ARG   },
-    { 0,            0,                  0               }
+    { "-keep-locals",   OPTION_KEEP_LOCALS, OPTION_NO_ARG   },
+    { "-nowarn",        OPTION_NOWARN,      OPTION_NO_ARG   },
+    { "-help",          OPTION_HELP,        OPTION_NO_ARG   },
+    { 0,                0,                  0               }
 
 };
 
@@ -89,16 +92,18 @@ static void print_help (void) {
     
     fprintf (stderr, "Usage: %s [options] asmfile...\n\n", program_name);
     fprintf (stderr, "Options:\n\n");
-    fprintf (stderr, "    -D MACRO[=str]    Pre-define a macro\n");
-    fprintf (stderr, "    -I DIR            Add DIR to search list for .include directives\n");
     
-    fprintf (stderr, "    -f FORMAT         Create an output file in format FORMAT (default a.out)\n");
-    fprintf (stderr, "                          Supported formats are: a.out, coff\n");
-    fprintf (stderr, "    -l FILE           Print listings to file FILE\n");
-    fprintf (stderr, "    -o OBJFILE        Name the object-file output OBJFILE (default a.out)\n");
+    fprintf (stderr, "    -D MACRO[=str]        Pre-define a macro\n");
+    fprintf (stderr, "    -I DIR                Add DIR to search list for .include directives\n");
+    fprintf (stderr, "    -L, --keep-locals     Keep local symbols (e.g. starting with `L')\n");
     
-    fprintf (stderr, "    --nowarn          Suppress warnings\n");
-    fprintf (stderr, "    --help            Print this help information\n");
+    fprintf (stderr, "    -f FORMAT             Create an output file in format FORMAT (default a.out)\n");
+    fprintf (stderr, "                              Supported formats are: a.out, coff\n");
+    fprintf (stderr, "    -l FILE               Print listings to file FILE\n");
+    fprintf (stderr, "    -o OBJFILE            Name the object-file output OBJFILE (default a.out)\n");
+    
+    fprintf (stderr, "    --nowarn              Suppress warnings\n");
+    fprintf (stderr, "    --help                Print this help information\n");
     fprintf (stderr, "\n");
     
 _exit:
@@ -370,6 +375,13 @@ void parse_args (int *pargc, char ***pargv, int optind) {
             case OPTION_INCLUDE: {
             
                 add_include_path (optarg);
+                break;
+            
+            }
+            
+            case OPTION_KEEP_LOCALS: {
+            
+                state->keep_locals = 1;
                 break;
             
             }

@@ -71,17 +71,8 @@ static void relax_section (section_t section) {
                 if (frag->symbol) {
                 
                     unsigned long old_frag_fixed_size = frag->fixed_size;
-                    long amount = symbol_get_value (frag->symbol);
                     
-                    if (symbol_is_undefined (frag->symbol)) {
-                        frag->fixed_size += 4;
-                    /*} else if (amount < 32767) {*/
-                    } else if (amount < 65535) {
-                        frag->fixed_size += 2;
-                    } else {
-                        frag->fixed_size += 4;
-                    }
-                    
+                    frag->fixed_size += 4;
                     address += (frag->fixed_size - old_frag_fixed_size);
                 
                 }
@@ -173,30 +164,19 @@ static void relax_section (section_t section) {
                 
                     growth = 0;
                     
-                    if (frag->symbol) {
+                    if (frag->symbol && !frag->symbol_seen) {
                     
-                        long amount = symbol_get_value (frag->symbol);
-                        int size = 0;
+                        frag->symbol_seen = 1;
                         
-                        if (symbol_is_undefined (frag->symbol)) {
-                            size = 4;
-                        /*} else if (amount < 32767) {*/
-                        } else if (amount < 65535) {
+                        if (frag->far_call > 0) {
                         
-                            size = 2;
-                            frag->symbol = NULL;
+                            frag->far_call--;
+                            fixup_new (frag, frag->opcode_offset_in_buf, 4, frag->symbol, frag->offset, 0, RELOC_TYPE_CALL, 1);
                         
                         } else {
-                        
-                            size = 4;
-                            frag->symbol = NULL;
-                        
+                            fixup_new (frag, frag->opcode_offset_in_buf, 4, frag->symbol, frag->offset, 0, RELOC_TYPE_CALL, state->model >= 4);
                         }
-                        
-                        fixup_new (frag, frag->opcode_offset_in_buf, size, frag->symbol, amount, 0, RELOC_TYPE_DEFAULT);
                     
-                    } else {
-                        /*fixup_new (frag, frag->opcode_offset_in_buf, 4, frag->symbol, frag->offset, 0, RELOC_TYPE_DEFAULT);*/
                     }
                     
                     break;
@@ -388,6 +368,7 @@ static void adjust_reloc_symbols_of_section (section_t section) {
             if (symbol_uses_reloc_symbol (symbol)) {
             
                 fixup->add_number += symbol_get_value_expression (symbol)->add_number;
+                
                 symbol = symbol_get_value_expression (symbol)->add_symbol;
                 fixup->add_symbol = symbol;
             
@@ -402,7 +383,7 @@ static void adjust_reloc_symbols_of_section (section_t section) {
             }
             
             fixup->add_number += symbol_get_value (symbol);
-            fixup->add_symbol = section_symbol (symbol_get_section (symbol));
+            fixup->add_symbol  = section_symbol (symbol_get_section (symbol));
         
         }
     
@@ -420,6 +401,7 @@ static unsigned long fixup_section (section_t section) {
     
     for (fixup = current_frag_chain->first_fixup; fixup; fixup = fixup->next) {
     
+        if (fixup->done) { continue; }
         add_number = fixup->add_number;
         
         if (fixup->add_symbol) {
@@ -440,7 +422,7 @@ static unsigned long fixup_section (section_t section) {
                 
                 fixup->add_symbol = NULL;
             
-            } else if (add_symbol_section == absolute_section) {
+            } else if (add_symbol_section == absolute_section || (fixup->reloc_type == RELOC_TYPE_CALL && !symbol_is_undefined (fixup->add_symbol))) {
             
                 add_number += symbol_get_value (fixup->add_symbol);
                 
@@ -456,10 +438,7 @@ static unsigned long fixup_section (section_t section) {
         }
         
         machine_dependent_apply_fixup (fixup, add_number);
-        
-        if (fixup->done == 0) {
-            section_reloc_count++;
-        }
+        if (!fixup->done == 0) { section_reloc_count++; }
     
     }
     

@@ -966,12 +966,35 @@ int process_file (const char *fname) {
                     
                     if (xstrcasecmp (temp_start_p, "label") == 0) {
                     
+                        char *temp = xmalloc (13);
                         symbol_label (start_p);
                         
                         *temp_line = temp_ch;
                         line = temp_line;
                         
-                        ignore_rest_of_line (&line);
+                        start_p = (line = skip_whitespace (line));
+                        saved_ch = get_symbol_name_end (&line);
+                        
+                        if (xstrcasecmp (start_p, "byte") == 0) {
+                        
+                            strcpy (temp, "1 dup (?)");
+                            
+                            if ((poe = find_pseudo_op ("db")) != NULL) {
+                                poe->handler (&temp);
+                            }
+                        
+                        } else if (xstrcasecmp (start_p, "word") == 0) {
+                        
+                            strcpy (temp, "1 dup (?)");
+                            
+                            if ((poe = find_pseudo_op ("dw")) != NULL) {
+                                poe->handler (&temp);
+                            }
+                        
+                        }
+                        
+                        /*ignore_rest_of_line (&line);*/
+                        *line = saved_ch;
                         continue;
                     
                     }

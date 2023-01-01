@@ -156,14 +156,14 @@ unsigned char *finished_frag_increase_fixed_size_by_frag_offset (struct frag *fr
 void frag_align (offset_t alignment, int fill_char, offset_t max_bytes_to_skip) {
 
     (frag_alloc_space (1 << alignment))[0] = fill_char;
-    frag_set_as_variant (RELAX_TYPE_ALIGN, (relax_subtype_t) max_bytes_to_skip, NULL, alignment, 0);
+    frag_set_as_variant (RELAX_TYPE_ALIGN, (relax_subtype_t) max_bytes_to_skip, NULL, alignment, 0, 0);
 
 }
 
 void frag_align_code (offset_t alignment, offset_t max_bytes_to_skip) {
 
     (frag_alloc_space (1 << alignment))[0] = 0x90;
-    frag_set_as_variant (RELAX_TYPE_ALIGN_CODE, (relax_subtype_t) max_bytes_to_skip, NULL, alignment, 0);
+    frag_set_as_variant (RELAX_TYPE_ALIGN_CODE, (relax_subtype_t) max_bytes_to_skip, NULL, alignment, 0, 0);
 
 }
 
@@ -193,13 +193,15 @@ void frag_new (void) {
 
 }
 
-void frag_set_as_variant (relax_type_t relax_type, relax_subtype_t relax_subtype, struct symbol *symbol, offset_t offset, value_t opcode_offset_in_buf) {
+void frag_set_as_variant (relax_type_t relax_type, relax_subtype_t relax_subtype, struct symbol *symbol, offset_t offset, value_t opcode_offset_in_buf, int far_call) {
 
     current_frag->relax_type           = relax_type;
     current_frag->relax_subtype        = relax_subtype;
     current_frag->symbol               = symbol;
     current_frag->offset               = offset;
     current_frag->opcode_offset_in_buf = opcode_offset_in_buf;
+    
+    if (far_call) { current_frag->far_call++; }
     
     get_filename_and_line_number (&(current_frag->filename), &(current_frag->line_number));
     frag_new ();

@@ -183,6 +183,11 @@ static section_t operand (char **pp, struct expr *expr, enum expr_mode expr_mode
         if (*temp == ':') {
             *temp = '_';
         }
+        
+        /*if (*temp && strcmp (temp, "__end") && strcmp (temp, "__edata")) {
+            *pp += 7;
+            report (REPORT_INTERNAL_ERROR, "%s", *pp);
+        }*/
     
     }
     

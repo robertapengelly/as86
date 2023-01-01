@@ -109,12 +109,14 @@ static const struct intel_type intel_types[] = {
 
 #define INTEL_TYPE(name, size) { #name, EXPR_TYPE_##name##_PTR, size }
     
-    INTEL_TYPE (NEAR, 0),
-    INTEL_TYPE (FAR, 0),
+    INTEL_TYPE (BYTE,  1),
     
-    INTEL_TYPE (BYTE, 1),
-    INTEL_TYPE (WORD, 2),
+    INTEL_TYPE (NEAR,  2),
+    INTEL_TYPE (WORD,  2),
+    
+    INTEL_TYPE (FAR,   4),
     INTEL_TYPE (DWORD, 4),
+    
     INTEL_TYPE (FWORD, 6),
     INTEL_TYPE (QWORD, 8),
     
@@ -1234,6 +1236,7 @@ struct instruction {
     const struct reg_entry *base_reg;
     const struct reg_entry *index_reg;
     
+    int far_call;
     uint32_t log2_scale_factor;
     
     uint32_t prefixes[MAX_PREFIXES];
@@ -2034,7 +2037,7 @@ static void output_jump (void) {
         }
         
         relax_subtype |= code16;
-        frag_set_as_variant (RELAX_TYPE_MACHINE_DEPENDENT, relax_subtype, symbol, offset, opcode_offset_in_buf);
+        frag_set_as_variant (RELAX_TYPE_MACHINE_DEPENDENT, relax_subtype, symbol, offset, opcode_offset_in_buf, instruction.far_call);
     
     } else {
     
@@ -2042,7 +2045,8 @@ static void output_jump (void) {
                              ENCODE_RELAX_SUBTYPE (RELAX_SUBTYPE_FORCED_SHORT_JUMP, RELAX_SUBTYPE_SHORT_JUMP),
                              symbol,
                              offset,
-                             opcode_offset_in_buf);
+                             opcode_offset_in_buf,
+                             instruction.far_call);
     
     }
 
@@ -2095,39 +2099,41 @@ static void output_call_or_jumpbyte (void) {
         report (REPORT_WARNING, "skipping prefixes on this instruction");
     }
     
-    if (state->model >= 4 && instruction.template.base_opcode == 0xE8 && size == 2) {
+    if (instruction.template.base_opcode == 0xE8 && size == 2 && (instruction.far_call || state->model >= 4)) {
     
         instruction.template.base_opcode = 0x9A;
-        size += 4;
+        size += 2;
     
     }
     
     frag_append_1_char (instruction.template.base_opcode);
     
-    if (instruction.disps[0]->type == EXPR_TYPE_CONSTANT) {
+    if (!instruction.far_call && (instruction.template.opcode_modifier & JUMPBYTE || state->model < 4)) {
     
-        /* "call 5" is converted to "temp_label: call 1 + temp_label + 5".
-         * The "1" is the size of the opcode
-         * and it is included by calling symbol_temp_new_now ()
-         * after the opcode is written above.
-         */
-        instruction.disps[0]->type = EXPR_TYPE_SYMBOL;
-        instruction.disps[0]->add_symbol = symbol_temp_new_now ();
-    
-    }
-    
-    if (instruction.template.opcode_modifier & JUMPBYTE || state->model < 4) {
-    
-        fixup_new_expr (current_frag, current_frag->fixed_size, size, instruction.disps[0], 1, RELOC_TYPE_DEFAULT);
+        if (instruction.disps[0]->type == EXPR_TYPE_CONSTANT) {
+        
+            /* "call 5" is converted to "temp_label: call 1 + temp_label + 5".
+            * The "1" is the size of the opcode
+            * and it is included by calling symbol_temp_new_now ()
+            * after the opcode is written above.
+            */
+            instruction.disps[0]->type = EXPR_TYPE_SYMBOL;
+            instruction.disps[0]->add_symbol = symbol_temp_new_now ();
+        
+        }
+        
+        fixup_new_expr (current_frag, current_frag->fixed_size, size, instruction.disps[0], 1, RELOC_TYPE_DEFAULT, 0);
         frag_increase_fixed_size (size);
     
     } else {
     
-        struct symbol *symbol = instruction.disps[0]->add_symbol;
-        unsigned long offset = instruction.disps[0]->add_number;
+        unsigned char *p = frag_increase_fixed_size (size);
         
-        frag_set_as_variant (RELAX_TYPE_CALL, 0, symbol, offset, current_frag->fixed_size);
-        frag_alloc_space (size + 4);
+        if (instruction.disps[0]->type == EXPR_TYPE_CONSTANT) {
+            machine_dependent_number_to_chars (p, instruction.disps[0]->add_number, size);
+        } else {
+            fixup_new_expr (current_frag, p - current_frag->buf, size, instruction.disps[0], 0, RELOC_TYPE_CALL, 1);
+        }
     
     }
 
@@ -2176,7 +2182,7 @@ static void output_intersegment_jump (void) {
         machine_dependent_number_to_chars (p, instruction.imms[1]->add_number, size);
     
     } else {
-        fixup_new_expr (current_frag, p - current_frag->buf, size, instruction.imms[1], 0, RELOC_TYPE_DEFAULT);
+        fixup_new_expr (current_frag, p - current_frag->buf, size, instruction.imms[1], 0, RELOC_TYPE_DEFAULT, instruction.far_call);
     }
     
     if (instruction.imms[0]->type != EXPR_TYPE_CONSTANT) {
@@ -2848,9 +2854,7 @@ static int intel_simplify_expr (struct expr *expr) {
             ret = intel_simplify_symbol (expr->add_symbol);
             intel_state.in_offset--;
             
-            if (!ret) {
-                return 0;
-            }
+            if (!ret) { return 0; }
             
             intel_fold_symbol_into_expr (expr, expr->add_symbol);
             return ret;
@@ -2942,7 +2946,9 @@ static int intel_simplify_expr (struct expr *expr) {
             instruction.force_short_jump = 1;
             goto ptr_after_setting_operand_modifier;
         
+        case EXPR_TYPE_FAR_PTR:
         case EXPR_TYPE_BYTE_PTR:
+        case EXPR_TYPE_NEAR_PTR:
         case EXPR_TYPE_WORD_PTR:
         case EXPR_TYPE_DWORD_PTR:
         case EXPR_TYPE_FWORD_PTR:
@@ -2954,16 +2960,6 @@ static int intel_simplify_expr (struct expr *expr) {
             
         ptr_after_setting_operand_modifier:
             
-            if (!intel_simplify_symbol (expr->add_symbol)) {
-                return 0;
-            }
-            
-            intel_fold_symbol_into_expr (expr, expr->add_symbol);
-            break;
-        
-        case EXPR_TYPE_NEAR_PTR:
-        case EXPR_TYPE_FAR_PTR:
-        
             if (!intel_simplify_symbol (expr->add_symbol)) {
                 return 0;
             }
@@ -3098,6 +3094,18 @@ static int intel_parse_operand (char *operand_string) {
         
         switch (intel_state.operand_modifier) {
         
+            case EXPR_TYPE_FAR_PTR:
+            
+                if (bits != 32 && (current_templates->start->opcode_modifier & CALL)) {
+                    instruction.far_call = 1;
+                }
+                
+                break;
+            
+            case EXPR_TYPE_NEAR_PTR:
+            
+                break;
+            
             case EXPR_TYPE_BYTE_PTR:
             
                 if (strcmp (current_templates->name, "call")) {
@@ -3109,8 +3117,6 @@ static int intel_parse_operand (char *operand_string) {
                 
                 /* fall through */
             
-            case EXPR_TYPE_FAR_PTR:
-            case EXPR_TYPE_NEAR_PTR:
             case EXPR_TYPE_WORD_PTR:
             
                 if (intel_float_suffix_translation (current_templates->name) == 2) {
@@ -3192,6 +3198,8 @@ static int intel_parse_operand (char *operand_string) {
             switch (intel_state.operand_modifier) {
             
                 case EXPR_TYPE_ABSENT:
+                case EXPR_TYPE_FAR_PTR:
+                case EXPR_TYPE_NEAR_PTR:
                 
                     intel_state.is_mem = 1;
                     break;
@@ -3950,7 +3958,7 @@ static void output_disps (void) {
                     size = 2;
                 }
                 
-                fixup_new_expr (current_frag, current_frag->fixed_size, size, instruction.disps[operand], 0, RELOC_TYPE_DEFAULT);
+                fixup_new_expr (current_frag, current_frag->fixed_size, size, instruction.disps[operand], 0, RELOC_TYPE_DEFAULT, 0);
                 frag_increase_fixed_size (size);
             
             }
@@ -3989,7 +3997,7 @@ static void output_imm (unsigned int operand) {
                 size = 2;
             }
             
-            fixup_new_expr (current_frag, current_frag->fixed_size, size, instruction.imms[operand], 0, RELOC_TYPE_DEFAULT);
+            fixup_new_expr (current_frag, current_frag->fixed_size, size, instruction.imms[operand], 0, RELOC_TYPE_DEFAULT, 0);
             frag_increase_fixed_size (size);
         
         }
@@ -4211,7 +4219,7 @@ char *machine_dependent_assemble_line (char *line) {
         
         }
         
-        if (instruction.template.base_opcode == 0xff && state->model >= 4) {
+        if (instruction.template.base_opcode == 0xff && instruction.template.extension_opcode < 6 && state->model >= 4) {
             frag_append_1_char (0x2E);
         }
         
@@ -4347,7 +4355,7 @@ long machine_dependent_estimate_size_before_relax (struct frag *frag, section_t 
             
                 *opcode_pos = 0xE9;
                 
-                fixup_new (frag, frag->fixed_size, size, frag->symbol, frag->offset, 1, RELOC_TYPE_DEFAULT);
+                fixup_new (frag, frag->fixed_size, size, frag->symbol, frag->offset, 1, RELOC_TYPE_DEFAULT, 0);
                 frag->fixed_size += size;
                 
                 break;
@@ -4364,7 +4372,7 @@ long machine_dependent_estimate_size_before_relax (struct frag *frag, section_t 
                     opcode_pos[2] = 0xE9;
                     
                     frag->fixed_size += 4;
-                    fixup_new (frag, old_frag_fixed_size + 2, size, frag->symbol, frag->offset, 1, RELOC_TYPE_DEFAULT);
+                    fixup_new (frag, old_frag_fixed_size + 2, size, frag->symbol, frag->offset, 1, RELOC_TYPE_DEFAULT, 0);
                     
                     break;
                 
@@ -4377,7 +4385,7 @@ long machine_dependent_estimate_size_before_relax (struct frag *frag, section_t 
                 opcode_pos[1] = opcode_pos[0] + 0x10;
                 opcode_pos[0] = TWOBYTE_OPCODE;
                 
-                fixup_new (frag, frag->fixed_size + 1, size, frag->symbol, frag->offset, 1, RELOC_TYPE_DEFAULT);
+                fixup_new (frag, frag->fixed_size + 1, size, frag->symbol, frag->offset, 1, RELOC_TYPE_DEFAULT, 0);
                 frag->fixed_size += size + 1;
                 
                 break;
@@ -4393,7 +4401,7 @@ long machine_dependent_estimate_size_before_relax (struct frag *frag, section_t 
                 
                 size = 1;
                 
-                fixup_new (frag, frag->fixed_size, size, frag->symbol, frag->offset, 1, RELOC_TYPE_DEFAULT);
+                fixup_new (frag, frag->fixed_size, size, frag->symbol, frag->offset, 1, RELOC_TYPE_DEFAULT, 0);
                 frag->fixed_size += size;
                 
                 break;
@@ -4473,7 +4481,7 @@ long machine_dependent_relax_frag (struct frag *frag, section_t section, long ch
 
 void machine_dependent_apply_fixup (struct fixup *fixup, unsigned long value) {
 
-    unsigned char *p = fixup->where + fixup->frag->buf;
+    unsigned char *p = fixup->frag->buf + fixup->where;
     
     if (fixup->add_symbol == NULL) {
         fixup->done = 1;
@@ -4483,26 +4491,28 @@ void machine_dependent_apply_fixup (struct fixup *fixup, unsigned long value) {
         value += machine_dependent_pcrel_from (fixup);
     }
     
-    p = fixup->frag->buf + fixup->where;
-    
     if (*(p - 1) == 0x9A) {
     
-        if (state->model >= 4 && fixup->add_symbol == NULL) {
+        if (fixup->far_call && fixup->add_symbol == NULL) {
         
-            value -= (fixup->where + fixup->frag->address);
-            
             /*if ((long) value >= 32767) {*/
             if ((long) value >= 65535) {
             
-                value += (fixup->size + 1);
+                value--;
                 
                 machine_dependent_number_to_chars (p, value % 16, 2);
                 machine_dependent_number_to_chars (p + 2, value / 16, 2);
             
             } else {
             
-                machine_dependent_number_to_chars (p, value - fixup->size, 2);
-                *(p - 1) = 0xE8;
+                value -= fixup->where;
+                value -= fixup->size;
+                
+                machine_dependent_number_to_chars (p - 1, 0x0E, 1);
+                machine_dependent_number_to_chars (p + 1, value + 1, 2);
+                
+                machine_dependent_number_to_chars (p, 0xE8, 1);
+                machine_dependent_number_to_chars (p + 3, 0x90, 1);
             
             }
         
