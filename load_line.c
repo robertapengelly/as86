@@ -149,7 +149,47 @@ int load_line (char **line_p, char **line_end_p, char **real_line_p, unsigned lo
                 }
                 
                 if (ll_data->line[pos_in_line] == '\n') {
-                    ++newlines;
+                
+                    int pos = pos_in_line;
+                    
+                    if (pos > 0 && ll_data->line[pos - 1] == '\r') {
+                        ll_data->line[--pos] = '\n';
+                    }
+                    
+                    if (pos > 0) {
+                    
+                        if (ll_data->line[pos - 1] != '\\') {
+                    
+                            ll_data->line[pos + 1] = '\0';
+                            ll_data->end_of_prev_real_line = pos_in_real_line;
+                            
+                            *line_p = ll_data->line;
+                            *line_end_p = ll_data->line + pos;
+                            
+                            *real_line_p = ll_data->real_line;
+                            *real_line_len_p = pos_in_real_line;
+                            
+                            *newlines_p = newlines;
+                            return 0;
+                        
+                        } else {
+                        
+                            pos_in_line = pos - 1;
+                            newlines++;
+                            
+                            if (ll_data->line[pos_in_line - 1] == ' ' || ll_data->line[pos_in_line - 1] == '\t') {
+                                pos_in_line--;
+                            }
+                            
+                            ll_data->line[++pos_in_line] = ' ';
+                            
+                            skipping_spaces = 1;
+                            goto copying;
+                        
+                        }
+                    
+                    }
+                
                 }
             
             } else {
