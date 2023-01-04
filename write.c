@@ -438,7 +438,7 @@ static unsigned long fixup_section (section_t section) {
         }
         
         machine_dependent_apply_fixup (fixup, add_number);
-        if (!fixup->done == 0) { section_reloc_count++; }
+        if (fixup->done == 0) { section_reloc_count++; }
     
     }
     
