@@ -3661,13 +3661,6 @@ static int match_template (void) {
     
     }
     
-    if (current_templates[0].start->base_opcode == 0xC3 && instruction.operands == 0 && state->model >= 4 && state->procs.length > 0) {
-    
-        instruction.template.base_opcode = 0xCB;
-        return 0;
-    
-    }
-    
     for (template = current_templates->start ; template < current_templates->end; template++) {
     
         uint32_t operand_type_overlap0, operand_type_overlap1, operand_type_overlap2;
@@ -3744,6 +3737,14 @@ static int match_template (void) {
         report (REPORT_ERROR, "operands invalid for '%s'", current_templates->name);
         return 1;
     
+    }
+    
+    if (template->base_opcode == 0xC3 && instruction.operands == 0 && state->model >= 4 && state->procs.length > 0) {
+        instruction.template.base_opcode = 0xCB;
+    }
+    
+    if (template->base_opcode == 0xC2 && instruction.operands == 1 && state->model >= 4 && state->procs.length > 0) {
+        instruction.template.base_opcode = 0xCA;
     }
     
     instruction.template = *template;
