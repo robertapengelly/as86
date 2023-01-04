@@ -4506,7 +4506,7 @@ void machine_dependent_apply_fixup (struct fixup *fixup, unsigned long value) {
             
             } else {
             
-                value -= fixup->where;
+                value -= (fixup->where + fixup->frag->address);
                 value -= fixup->size;
                 
                 machine_dependent_number_to_chars (p - 1, 0x0E, 1);
