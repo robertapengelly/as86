@@ -3739,6 +3739,8 @@ static int match_template (void) {
     
     }
     
+    instruction.template = *template;
+    
     if (template->base_opcode == 0xC3 && instruction.operands == 0 && state->model >= 4 && state->procs.length > 0) {
         instruction.template.base_opcode = 0xCB;
     }
@@ -3746,8 +3748,6 @@ static int match_template (void) {
     if (template->base_opcode == 0xC2 && instruction.operands == 1 && state->model >= 4 && state->procs.length > 0) {
         instruction.template.base_opcode = 0xCA;
     }
-    
-    instruction.template = *template;
     
     if (found_reverse_match) {
     
