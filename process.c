@@ -1063,7 +1063,7 @@ int process_file (const char *fname) {
                             name = line;
                             saved_ch = get_symbol_name_end (&line);
                             
-                            if (!isalnum (*name)) {
+                            if (!isalnum ((int) *name)) {
                             
                                 *line = saved_ch;
                                 break;
