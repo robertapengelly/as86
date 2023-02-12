@@ -1190,6 +1190,61 @@ static void handler_code32 (char **pp) {
 
 }
 
+extern void ignore_rest_of_line (char **pp);
+
+static void handler_option (char **pp) {
+
+    char saved_ch, *p;
+    *pp = skip_whitespace (*pp);
+    
+    if (!**pp || **pp == '\n') {
+    
+        report (REPORT_ERROR, "syntax error in option directive");
+        return;
+    
+    }
+    
+    p = *pp;
+    saved_ch = get_symbol_name_end (pp);
+    
+    if (xstrcasecmp (p, "segment") == 0) {
+    
+        **pp = saved_ch;
+        *pp = skip_whitespace (*pp);
+        
+        if (**pp && **pp == ':') {
+        
+            *pp = skip_whitespace (*pp + 1);
+            
+            p = *pp;
+            saved_ch = get_symbol_name_end (pp);
+            
+            if (xstrcasecmp (p, "use16") == 0) {
+                bits = 16;
+            } else if (xstrcasecmp (p, "use32") == 0) {
+                bits = 32;
+            } else {
+            
+                report (REPORT_ERROR, "syntax error in option directive");
+                goto out;
+            
+            }
+            
+            goto out;
+        
+        }
+        
+        report (REPORT_ERROR, "syntax error in option directive");
+    
+    }
+    
+out:
+    
+    **pp = saved_ch;
+    ignore_rest_of_line (pp);
+
+}
+
 static struct pseudo_op pseudo_ops[] = {
 
     { ".8086",      handler_8086    },
@@ -1208,6 +1263,9 @@ static struct pseudo_op pseudo_ops[] = {
     
     { ".code16",    handler_code16  },
     { ".code32",    handler_code32  },
+    
+    { ".option",    handler_option  },
+    { "option",     handler_option  },
     
     { NULL,         NULL }
 
