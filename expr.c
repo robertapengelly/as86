@@ -426,7 +426,23 @@ static section_t operand (char **pp, struct expr *expr, enum expr_mode expr_mode
                 
                 if (strcmp (name, "@CodeSize") == 0) {
                 
-                    char *val = (state->model >= 4 ? "1" : "0");
+                    char *val;
+                    
+                    switch (state->model) {
+                    
+                        case 4:
+                        case 5:
+                        case 6:
+                        
+                            val = "1";
+                            break;
+                        
+                        default:
+                        
+                            val = "0";
+                            break;
+                    
+                    }
                     
                     ret_section = read_into (&val, expr, 0, expr_mode);
                     **pp = c;
@@ -436,7 +452,27 @@ static section_t operand (char **pp, struct expr *expr, enum expr_mode expr_mode
                 
                 } else if (strcmp (name, "@DataSize") == 0) {
                 
-                    char *val = (state->model == 6 ? "2" : (state->model > 4 ? "1" : "0"));
+                    char *val;
+                    
+                    switch (state->model) {
+                    
+                        case 6:
+                        
+                            val = "2";
+                            break;
+                        
+                        case 3:
+                        case 5:
+                        
+                            val = "1";
+                            break;
+                        
+                        default:
+                        
+                            val = "0";
+                            break;
+                    
+                    }
                     
                     ret_section = read_into (&val, expr, 0, expr_mode);
                     **pp = c;

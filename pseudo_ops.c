@@ -535,12 +535,16 @@ static void handler_model (char **pp) {
         state->model = 1;
     } else if (xstrcasecmp (model, "small") == 0) {
         state->model = 2;
+    } else if (xstrcasecmp (model, "compact") == 0) {
+        state->model = 3;
     } else if (xstrcasecmp (model, "medium") == 0) {
         state->model = 4;
     } else if (xstrcasecmp (model, "large") == 0) {
         state->model = 5;
     } else if (xstrcasecmp (model, "huge") == 0) {
         state->model = 6;
+    } else if (xstrcasecmp (model, "flat") == 0) {
+        state->model = 7;
     } else {
     
         struct hashtab_name *key;
@@ -560,6 +564,11 @@ static void handler_model (char **pp) {
                     state->model = 2;
                     goto got_model;
                 
+                } else if (xstrcasecmp (entry, "compact") == 0) {
+                
+                    state->model = 3;
+                    goto got_model;
+                
                 } else if (xstrcasecmp (entry, "medium") == 0) {
                 
                     state->model = 4;
@@ -573,6 +582,11 @@ static void handler_model (char **pp) {
                 } else if (xstrcasecmp (entry, "huge") == 0) {
                 
                     state->model = 6;
+                    goto got_model;
+                
+                } else if (xstrcasecmp (entry, "flat") == 0) {
+                
+                    state->model = 7;
                     goto got_model;
                 
                 }

@@ -439,11 +439,18 @@ out:
 }
 
 extern const char is_end_of_line[];
+
 extern char get_symbol_name_end (char **pp);
+extern void ignore_rest_of_line (char **pp);
 
 static void handler_masm_segment (char **pp) {
 
     char *arg, saved_ch;
+    
+    int32_t last = state->segs.length - 1;
+
+    struct seg *seg = state->segs.data[last];
+    seg->bits = machine_dependent_get_bits ();
     
     for (;;) {
     
@@ -472,29 +479,24 @@ static void handler_masm_segment (char **pp) {
         }
         
         if (xstrcasecmp (arg, "use16") == 0) {
-        
-            int32_t last = state->segs.length - 1;
-            
-            struct seg *seg = state->segs.data[last];
-            seg->bits = machine_dependent_get_bits ();
-            
             machine_dependent_set_bits (16);
-        
         } else if (xstrcasecmp (arg, "use32") == 0) {
-        
-            int32_t last = state->segs.length - 1;
-            
-            struct seg *seg = state->segs.data[last];
-            seg->bits = machine_dependent_get_bits ();
-            
             machine_dependent_set_bits (32);
-        
         } else if (xstrcasecmp (arg, "code") == 0) {
             section_set_by_name (".text");
         } else if (xstrcasecmp (arg, "data") == 0) {
             section_set_by_name (".data");
         } else if (xstrcasecmp (arg, "bss") == 0) {
             section_set_by_name (".bss");
+        } else {
+        
+            **pp = saved_ch;
+            
+            report (REPORT_ERROR, "invalid option passed to segment");
+            ignore_rest_of_line (pp);
+            
+            return;
+        
         }
         
         **pp = saved_ch;
