@@ -601,6 +601,10 @@ static void handler_model (char **pp) {
     
 got_model:
     
+    if (state->model == 7 && machine_dependent_get_cpu () >= 3) {
+    	machine_dependent_set_bits (32);
+    }
+    
     **pp = saved_ch;
     *pp = skip_whitespace (*pp);
     
