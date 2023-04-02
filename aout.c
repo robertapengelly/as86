@@ -478,9 +478,13 @@ static void handler_masm_segment (char **pp) {
         
         }
         
-        if (xstrcasecmp (arg, "use16") == 0) {
+        if (xstrcasecmp (arg, "byte") == 0 || xstrcasecmp (arg, "word") == 0 || xstrcasecmp (arg, "dword") == 0 || xstrcasecmp (arg, "para") == 0 || xstrcasecmp (arg, "page") == 0) {
+            ;
+        } else if (xstrcasecmp (arg, "public") == 0 || xstrcasecmp (arg, "stack") == 0 || xstrcasecmp (arg, "common") == 0 || xstrcasecmp (arg, "memory") == 0 || xstrcasecmp (arg, "private") == 0) {
+            ;
+        } else if (xstrcasecmp (arg, "use16") == 0) {
             machine_dependent_set_bits (16);
-        } else if (xstrcasecmp (arg, "use32") == 0) {
+        } else if (xstrcasecmp (arg, "use32") == 0 || xstrcasecmp (arg, "flat") == 0) {
             machine_dependent_set_bits (32);
         } else if (xstrcasecmp (arg, "code") == 0) {
             section_set_by_name (".text");
