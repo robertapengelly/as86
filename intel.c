@@ -2183,6 +2183,23 @@ static void output_call_or_jumpbyte (void) {
         fixup_new_expr (current_frag, current_frag->fixed_size, size, instruction.disps[0], 1, RELOC_TYPE_DEFAULT, 0);
         frag_increase_fixed_size (size);
     
+    } else if (!instruction.far_call) {
+    
+        if (instruction.disps[0]->type == EXPR_TYPE_CONSTANT) {
+        
+            /* "call 5" is converted to "temp_label: call 1 + temp_label + 5".
+            * The "1" is the size of the opcode
+            * and it is included by calling symbol_temp_new_now ()
+            * after the opcode is written above.
+            */
+            instruction.disps[0]->type = EXPR_TYPE_SYMBOL;
+            instruction.disps[0]->add_symbol = symbol_temp_new_now ();
+        
+        }
+        
+        fixup_new_expr (current_frag, current_frag->fixed_size, size, instruction.disps[0], 1, RELOC_TYPE_DEFAULT, 0);
+        frag_increase_fixed_size (size);
+    
     } else {
     
         unsigned char *p = frag_increase_fixed_size (size);
