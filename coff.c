@@ -116,6 +116,19 @@ void coff_write_object (void) {
     
     }
     
+    for (symbol = symbols; symbol; symbol = symbol->next) {
+    
+        if (symbol_is_external (symbol) || symbol_is_undefined (symbol)) {
+        
+            char *name = xmalloc (strlen (state->sym_start) + strlen (symbol->name) + 1);
+            sprintf (name, "%s%s", state->sym_start, symbol->name);
+            
+            symbol->name = name;
+        
+        }
+    
+    }
+    
     for (section = sections; section; section = section_get_next_section (section)) {
     
         struct section_table_entry *section_header = xmalloc (sizeof (*section_header));
