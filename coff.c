@@ -116,14 +116,18 @@ void coff_write_object (void) {
     
     }
     
-    for (symbol = symbols; symbol; symbol = symbol->next) {
+    if (state->sym_start) {
     
-        if (symbol_is_external (symbol) || symbol_is_undefined (symbol)) {
+        for (symbol = symbols; symbol; symbol = symbol->next) {
         
-            char *name = xmalloc (strlen (state->sym_start) + strlen (symbol->name) + 1);
-            sprintf (name, "%s%s", state->sym_start, symbol->name);
+            if (symbol_is_external (symbol) || symbol_is_undefined (symbol)) {
             
-            symbol->name = name;
+                char *name = xmalloc (strlen (state->sym_start) + strlen (symbol->name) + 1);
+                sprintf (name, "%s%s", state->sym_start, symbol->name);
+                
+                symbol->name = name;
+            
+            }
         
         }
     
