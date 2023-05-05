@@ -174,7 +174,7 @@ static void relax_section (section_t section) {
                             fixup_new (frag, frag->opcode_offset_in_buf, 4, frag->symbol, frag->offset, 0, RELOC_TYPE_CALL, 1);
                         
                         } else {
-                            fixup_new (frag, frag->opcode_offset_in_buf, 4, frag->symbol, frag->offset, 0, RELOC_TYPE_CALL, state->model >= 4);
+                            fixup_new (frag, frag->opcode_offset_in_buf, 4, frag->symbol, frag->offset, 0, RELOC_TYPE_CALL, state->model >= 4 && state->model < 7);
                         }
                     
                     }

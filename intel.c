@@ -2157,10 +2157,14 @@ static void output_call_or_jumpbyte (void) {
         report (REPORT_WARNING, "skipping prefixes on this instruction");
     }
     
-    if (instruction.template.base_opcode == 0xE8 && size == 2 && (instruction.far_call || state->model >= 4)) {
+    if (state->model < 7) {
     
-        instruction.template.base_opcode = 0x9A;
-        size += 2;
+        if (instruction.template.base_opcode == 0xE8 && size == 2 && (instruction.far_call || state->model >= 4)) {
+        
+            instruction.template.base_opcode = 0x9A;
+            size += 2;
+        
+        }
     
     }
     
@@ -3171,7 +3175,7 @@ static int intel_parse_operand (char *operand_string) {
         
             case EXPR_TYPE_FAR_PTR:
             
-                if (bits != 32 && (current_templates->start->opcode_modifier & CALL)) {
+                if (bits != 32 && (current_templates->start->opcode_modifier & CALL) && state->model < 7) {
                     instruction.far_call = 1;
                 }
                 
@@ -3816,12 +3820,16 @@ static int match_template (void) {
     
     instruction.template = *template;
     
-    if (template->base_opcode == 0xC3 && instruction.operands == 0 && state->model >= 4 && state->procs.length > 0) {
-        instruction.template.base_opcode = 0xCB;
-    }
+    if (state->model < 7) {
     
-    if (template->base_opcode == 0xC2 && instruction.operands == 1 && state->model >= 4 && state->procs.length > 0) {
-        instruction.template.base_opcode = 0xCA;
+        if (template->base_opcode == 0xC3 && instruction.operands == 0 && state->model >= 4 && state->procs.length > 0) {
+            instruction.template.base_opcode = 0xCB;
+        }
+        
+        if (template->base_opcode == 0xC2 && instruction.operands == 1 && state->model >= 4 && state->procs.length > 0) {
+            instruction.template.base_opcode = 0xCA;
+        }
+    
     }
     
     if (found_reverse_match) {
