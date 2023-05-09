@@ -497,7 +497,7 @@ void write_object_file (struct object_format *obj_fmt) {
                 
                 }
                 
-                if (frag->address + frag->size > val) {
+                if (frag->address + frag->size >= val) {
                 
                     val -= frag->address;
                     
