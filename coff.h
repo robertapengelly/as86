@@ -8,15 +8,15 @@
 
 struct coff_header {
 
-    uint16_t Machine;
-    uint16_t NumberOfSections;
+    unsigned char Machine[2];
+    unsigned char NumberOfSections[2];
     
-    uint32_t TimeDateStamp;
-    uint32_t PointerToSymbolTable;
-    uint32_t NumberOfSymbols;
+    unsigned char TimeDateStamp[4];
+    unsigned char PointerToSymbolTable[4];
+    unsigned char NumberOfSymbols[4];
     
-    uint16_t SizeOfOptionalHeader;
-    uint16_t Characteristics;
+    unsigned char SizeOfOptionalHeader[2];
+    unsigned char Characteristics[2];
 
 };
 
@@ -27,18 +27,18 @@ struct section_table_entry {
 
     char Name[8];
     
-    uint32_t VirtualSize;
-    uint32_t VirtualAddress;
+    unsigned char VirtualSize[4];
+    unsigned char VirtualAddress[4];
     
-    uint32_t SizeOfRawData;
-    uint32_t PointerToRawData;
-    uint32_t PointerToRelocations;
-    uint32_t PointerToLinenumbers;
+    unsigned char SizeOfRawData[4];
+    unsigned char PointerToRawData[4];
+    unsigned char PointerToRelocations[4];
+    unsigned char PointerToLinenumbers[4];
     
-    uint16_t NumberOfRelocations;
-    uint16_t NumberOfLinenumbers;
+    unsigned char NumberOfRelocations[2];
+    unsigned char NumberOfLinenumbers[2];
     
-    uint32_t Characteristics;
+    unsigned char Characteristics[4];
 
 };
 
@@ -51,10 +51,10 @@ struct section_table_entry {
 
 struct relocation_entry {
 
-    uint32_t VirtualAddress;
-    uint32_t SymbolTableIndex;
+    unsigned char VirtualAddress[4];
+    unsigned char SymbolTableIndex[4];
     
-    uint16_t Type;
+    unsigned char Type[2];
 
 };
 
@@ -70,13 +70,13 @@ struct relocation_entry {
 struct symbol_table_entry {
 
     char Name[8];
-    uint32_t Value;
+    unsigned char Value[4];
     
-    signed short SectionNumber;
-    uint16_t Type;
+    unsigned char SectionNumber[2];
+    unsigned char Type[2];
     
-    unsigned char StorageClass;
-    unsigned char NumberOfAuxSymbols;
+    unsigned char StorageClass[1];
+    unsigned char NumberOfAuxSymbols[1];
 
 };
 

@@ -15,11 +15,11 @@
 #include    "section.h"
 #include    "stdint.h"
 #include    "symbol.h"
+#include    "write7x.h"
 
 static int output_relocation (FILE *outfile, struct fixup *fixup) {
 
     struct relocation_entry reloc_entry;
-    reloc_entry.VirtualAddress = fixup->frag->address + fixup->where;
     
     if (fixup->add_symbol == NULL) {
     
@@ -28,20 +28,22 @@ static int output_relocation (FILE *outfile, struct fixup *fixup) {
     
     }
     
-    reloc_entry.SymbolTableIndex = symbol_get_symbol_table_index (fixup->add_symbol);
+    write741_to_byte_array (reloc_entry.VirtualAddress, fixup->frag->address + fixup->where);
+    write741_to_byte_array (reloc_entry.SymbolTableIndex, symbol_get_symbol_table_index (fixup->add_symbol));
     
     switch (fixup->reloc_type) {
     
         case RELOC_TYPE_DEFAULT:
+        case RELOC_TYPE_CALL:
         
             switch (fixup->size) {
             
                 case 2:
                 
                     if (fixup->pcrel) {
-                        reloc_entry.Type = IMAGE_REL_I386_REL16;
+                        write721_to_byte_array (reloc_entry.Type, IMAGE_REL_I386_REL16);
                     } else {
-                        reloc_entry.Type = IMAGE_REL_I386_DIR16;
+                        write721_to_byte_array (reloc_entry.Type, IMAGE_REL_I386_DIR16);
                     }
                     
                     break;
@@ -49,9 +51,9 @@ static int output_relocation (FILE *outfile, struct fixup *fixup) {
                 case 4:
                 
                     if (fixup->pcrel) {
-                        reloc_entry.Type = IMAGE_REL_I386_REL32;
+                        write721_to_byte_array (reloc_entry.Type, IMAGE_REL_I386_REL32);
                     } else {
-                        reloc_entry.Type = IMAGE_REL_I386_DIR32;
+                        write721_to_byte_array (reloc_entry.Type, IMAGE_REL_I386_DIR32);
                     }
                     
                     break;
@@ -67,7 +69,7 @@ static int output_relocation (FILE *outfile, struct fixup *fixup) {
         
         case RELOC_TYPE_RVA:
         
-            reloc_entry.Type = IMAGE_REL_I386_DIR32NB;
+            write721_to_byte_array (reloc_entry.Type, IMAGE_REL_I386_DIR32NB);
             break;
         
         default:
@@ -84,15 +86,18 @@ static int output_relocation (FILE *outfile, struct fixup *fixup) {
 
 }
 
+#define     GET_UINT16(arr)             ((uint32_t) arr[0] | (((uint32_t) arr[1]) << 8))
+
 void coff_write_object (void) {
 
     struct coff_header header;
     struct symbol *symbol;
     
     FILE *outfile;
-    uint32_t string_table_size = 4;
-    
     section_t section;
+    
+    uint32_t string_table_size = 4;
+    uint32_t NumberOfSymbols = 0;
     
     sections_number (1);
     memset (&header, 0, sizeof (header));
@@ -104,10 +109,10 @@ void coff_write_object (void) {
     
     }
     
-    header.Machine = IMAGE_FILE_MACHINE_I386;
-    header.NumberOfSections = sections_get_count ();
-    header.SizeOfOptionalHeader = 0;
-    header.Characteristics = IMAGE_FILE_LINE_NUMS_STRIPPED;
+    write721_to_byte_array (header.Machine, IMAGE_FILE_MACHINE_I386);
+    write721_to_byte_array (header.NumberOfSections, sections_get_count ());
+    write721_to_byte_array (header.SizeOfOptionalHeader, 0);
+    write721_to_byte_array (header.Characteristics, IMAGE_FILE_LINE_NUMS_STRIPPED);
     
     if (fseek (outfile, (sizeof (header) + sections_get_count () * sizeof (struct section_table_entry)), SEEK_SET)) {
     
@@ -142,23 +147,25 @@ void coff_write_object (void) {
         strcpy (section_header->Name, section_get_name (section));
         
         if (section == text_section) {
-            section_header->Characteristics = (IMAGE_SCN_CNT_CODE | IMAGE_SCN_MEM_EXECUTE | IMAGE_SCN_MEM_READ);
+            write741_to_byte_array (section_header->Characteristics, (IMAGE_SCN_CNT_CODE | IMAGE_SCN_MEM_EXECUTE | IMAGE_SCN_MEM_READ));
         } else if (section == data_section) {
-            section_header->Characteristics = (IMAGE_SCN_CNT_INITIALIZED_DATA | IMAGE_SCN_MEM_WRITE | IMAGE_SCN_MEM_READ);
+            write741_to_byte_array (section_header->Characteristics, (IMAGE_SCN_CNT_INITIALIZED_DATA | IMAGE_SCN_MEM_WRITE | IMAGE_SCN_MEM_READ));
         } else if (section == bss_section) {
-            section_header->Characteristics = (IMAGE_SCN_CNT_UNINITIALIZED_DATA | IMAGE_SCN_MEM_WRITE | IMAGE_SCN_MEM_READ);
+            write741_to_byte_array (section_header->Characteristics, (IMAGE_SCN_CNT_UNINITIALIZED_DATA | IMAGE_SCN_MEM_WRITE | IMAGE_SCN_MEM_READ));
         } else {
             /* .idata, for example. */
-            section_header->Characteristics = (IMAGE_SCN_CNT_INITIALIZED_DATA | IMAGE_SCN_MEM_WRITE | IMAGE_SCN_MEM_READ);
+            write741_to_byte_array (section_header->Characteristics, (IMAGE_SCN_CNT_INITIALIZED_DATA | IMAGE_SCN_MEM_WRITE | IMAGE_SCN_MEM_READ));
         }
         
         if (section != bss_section) {
         
+            uint32_t SizeOfRawData = 0;
             struct frag *frag;
+            
             section_set (section);
             
-            section_header->PointerToRawData = ftell (outfile);
-            section_header->SizeOfRawData = 0;
+            write741_to_byte_array (section_header->PointerToRawData, ftell (outfile));
+            write741_to_byte_array (section_header->SizeOfRawData, 0);
             
             for (frag = current_frag_chain->first_frag; frag; frag = frag->next) {
             
@@ -173,20 +180,23 @@ void coff_write_object (void) {
                 
                 }
                 
-                section_header->SizeOfRawData += frag->fixed_size;
+                SizeOfRawData += frag->fixed_size;
             
             }
             
+            write741_to_byte_array (section_header->SizeOfRawData, SizeOfRawData);
+            
             if (section_header->SizeOfRawData == 0) {
-                section_header->PointerToRawData = 0;
+                write741_to_byte_array (section_header->PointerToRawData, 0);
             }
         
         } else {
         
+            uint32_t VirtualSize = 0;
             struct frag *frag;
             
             section_set (section);
-            section_header->VirtualSize = 0;
+            write741_to_byte_array (section_header->VirtualSize, 0);
             
             for (frag = current_frag_chain->first_frag; frag; frag = frag->next) {
             
@@ -194,16 +204,18 @@ void coff_write_object (void) {
                     continue;
                 }
                 
-                section_header->VirtualSize += frag->fixed_size;
+                VirtualSize += frag->fixed_size;
             
             }
+            
+            write741_to_byte_array (section_header->VirtualSize, VirtualSize);
         
         }
     
     }
     
-    header.PointerToSymbolTable = ftell (outfile);
-    header.NumberOfSymbols = 0;
+    write741_to_byte_array (header.PointerToSymbolTable, ftell (outfile));
+    write741_to_byte_array (header.NumberOfSymbols, 0);
     
     for (symbol = symbols; symbol; symbol = symbol->next) {
     
@@ -213,62 +225,62 @@ void coff_write_object (void) {
             
             memset (&sym_tbl_ent, 0, sizeof (sym_tbl_ent));
 
-            sym_tbl_ent.Value = symbol_get_value (symbol);
+            write741_to_byte_array (sym_tbl_ent.Value, symbol_get_value (symbol));
             
             if (symbol->section == undefined_section) {
-                sym_tbl_ent.SectionNumber = IMAGE_SYM_UNDEFINED;
+                write721_to_byte_array (sym_tbl_ent.SectionNumber, IMAGE_SYM_UNDEFINED);
             } else {
-                sym_tbl_ent.SectionNumber = section_get_number (symbol->section);
+                write721_to_byte_array (sym_tbl_ent.SectionNumber, section_get_number (symbol->section));
             }
         
-            sym_tbl_ent.Type = ((IMAGE_SYM_DTYPE_NULL << 8) | IMAGE_SYM_TYPE_NULL);
+            write721_to_byte_array (sym_tbl_ent.Type, ((IMAGE_SYM_DTYPE_NULL << 8) | IMAGE_SYM_TYPE_NULL));
             
             if (symbol_is_external (symbol) || symbol_is_undefined (symbol)) {
-                sym_tbl_ent.StorageClass = IMAGE_SYM_CLASS_EXTERNAL;
+                sym_tbl_ent.StorageClass[0] = IMAGE_SYM_CLASS_EXTERNAL;
             } else if (symbol_is_section_symbol (symbol)) {
-                sym_tbl_ent.StorageClass = IMAGE_SYM_CLASS_STATIC;
+                sym_tbl_ent.StorageClass[0] = IMAGE_SYM_CLASS_STATIC;
             } else if (symbol_get_section (symbol) == text_section) {
-                sym_tbl_ent.StorageClass = IMAGE_SYM_CLASS_LABEL;
+                sym_tbl_ent.StorageClass[0] = IMAGE_SYM_CLASS_LABEL;
             } else {
-                sym_tbl_ent.StorageClass = IMAGE_SYM_CLASS_STATIC;
+                sym_tbl_ent.StorageClass[0] = IMAGE_SYM_CLASS_STATIC;
             }
             
-            sym_tbl_ent.NumberOfAuxSymbols = 0;
+            sym_tbl_ent.NumberOfAuxSymbols[0] = 0;
 
         } else {
 
             sym_tbl_ent = *(struct symbol_table_entry *)(symbol->object_format_dependent_data);
 
-            sym_tbl_ent.Value = symbol_get_value (symbol);
+            write741_to_byte_array (sym_tbl_ent.Value, symbol_get_value (symbol));
 
             if (!sym_tbl_ent.SectionNumber) {
 
                 if (symbol->section == undefined_section) {
-                    sym_tbl_ent.SectionNumber = IMAGE_SYM_UNDEFINED;
+                    write721_to_byte_array (sym_tbl_ent.SectionNumber, IMAGE_SYM_UNDEFINED);
                 } else {
-                    sym_tbl_ent.SectionNumber = section_get_number (symbol->section);
+                    write721_to_byte_array (sym_tbl_ent.SectionNumber, section_get_number (symbol->section));
                 }
 
             }
 
             if (!sym_tbl_ent.Type) {
-                sym_tbl_ent.Type = ((IMAGE_SYM_DTYPE_NULL << 8) | IMAGE_SYM_TYPE_NULL);
+                write721_to_byte_array (sym_tbl_ent.Type, ((IMAGE_SYM_DTYPE_NULL << 8) | IMAGE_SYM_TYPE_NULL));
             }
 
-            if (sym_tbl_ent.SectionNumber == IMAGE_SYM_UNDEFINED) {
-                sym_tbl_ent.StorageClass = IMAGE_SYM_CLASS_EXTERNAL;
-            } else if (sym_tbl_ent.StorageClass == IMAGE_SYM_CLASS_STATIC && symbol_is_external (symbol)) {
-                sym_tbl_ent.StorageClass = IMAGE_SYM_CLASS_EXTERNAL;
-            } else if (!sym_tbl_ent.StorageClass) {
+            if (GET_UINT16 (sym_tbl_ent.SectionNumber) == IMAGE_SYM_UNDEFINED) {
+                sym_tbl_ent.StorageClass[0] = IMAGE_SYM_CLASS_EXTERNAL;
+            } else if (sym_tbl_ent.StorageClass[0] == IMAGE_SYM_CLASS_STATIC && symbol_is_external (symbol)) {
+                sym_tbl_ent.StorageClass[0] = IMAGE_SYM_CLASS_EXTERNAL;
+            } else if (!sym_tbl_ent.StorageClass[0]) {
 
                 if (symbol_is_external (symbol)) {
-                    sym_tbl_ent.StorageClass = IMAGE_SYM_CLASS_EXTERNAL;
+                    sym_tbl_ent.StorageClass[0] = IMAGE_SYM_CLASS_EXTERNAL;
                 } else if (symbol_is_section_symbol (symbol)) {
-                    sym_tbl_ent.StorageClass = IMAGE_SYM_CLASS_STATIC;
+                    sym_tbl_ent.StorageClass[0] = IMAGE_SYM_CLASS_STATIC;
                 } else if (symbol_get_section (symbol) == text_section) {
-                    sym_tbl_ent.StorageClass = IMAGE_SYM_CLASS_LABEL;
+                    sym_tbl_ent.StorageClass[0] = IMAGE_SYM_CLASS_LABEL;
                 } else {
-                    sym_tbl_ent.StorageClass = IMAGE_SYM_CLASS_STATIC;
+                    sym_tbl_ent.StorageClass[0] = IMAGE_SYM_CLASS_STATIC;
                 }
 
             }
@@ -300,16 +312,33 @@ void coff_write_object (void) {
         
         }
         
-        symbol_set_symbol_table_index (symbol, header.NumberOfSymbols);
-        header.NumberOfSymbols++;
+        symbol_set_symbol_table_index (symbol, NumberOfSymbols);
+        NumberOfSymbols++;
     
     }
+    
+    write741_to_byte_array (header.NumberOfSymbols, NumberOfSymbols);
     
     if (fwrite (&string_table_size, 4, 1, outfile) != 1) {
     
         report_at (NULL, 0, REPORT_ERROR, "Failed to write string table!");
         return;
     
+    }
+    
+    for (section = sections; section; section = section_get_next_section (section)) {
+
+        if (strlen (section_get_name (section)) > 8) {
+
+            if (fwrite (section_get_name (section), strlen (section_get_name (section)) + 1, 1, outfile) != 1) {
+            
+                report_at (NULL, 0, REPORT_ERROR, "Failed to write string table!");
+                return;
+            
+            }
+        
+        }
+
     }
     
     for (symbol = symbols; symbol; symbol = symbol->next) {
@@ -332,8 +361,10 @@ void coff_write_object (void) {
         struct section_table_entry *section_header = section_get_object_format_dependent_data (section);
         struct fixup *fixup;
         
-        section_header->PointerToRelocations = ftell (outfile);
-        section_header->NumberOfRelocations = 0;
+        uint32_t NumberOfRelocations = 0;
+        
+        write741_to_byte_array (section_header->PointerToRelocations, ftell (outfile));
+        write741_to_byte_array (section_header->NumberOfRelocations, 0);
         
         section_set (section);
         
@@ -350,12 +381,14 @@ void coff_write_object (void) {
             
             }
             
-            section_header->NumberOfRelocations++;
+            NumberOfRelocations++;
         
         }
         
-        if (section_header->NumberOfRelocations == 0) {
-            section_header->PointerToRelocations = 0;
+        write741_to_byte_array (section_header->NumberOfRelocations, NumberOfRelocations);
+        
+        if (NumberOfRelocations == 0) {
+            write741_to_byte_array (section_header->PointerToRelocations, 0);
         }
     
     }
