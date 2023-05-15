@@ -1092,7 +1092,7 @@ static void handler_8086 (char **pp) {
     (void) pp;
     
     cpu_level = 0;
-    bits = 16;
+    /*bits = 16;*/
 
 }
 
@@ -1101,7 +1101,7 @@ static void handler_186 (char **pp) {
     (void) pp;
     
     cpu_level = 1;
-    bits = 16;
+    /*bits = 16;*/
 
 }
 
@@ -1110,7 +1110,7 @@ static void handler_286 (char **pp) {
     (void) pp;
     
     cpu_level = 2;
-    bits = 16;
+    /*bits = 16;*/
 
 }
 
@@ -1119,7 +1119,7 @@ static void handler_386 (char **pp) {
     (void) pp;
     
     cpu_level = 3;
-    if (state->model > 2) { bits = 32; }
+    /*if (state->model > 2) { bits = 32; }*/
 
 }
 
@@ -1128,7 +1128,7 @@ static void handler_486 (char **pp) {
     (void) pp;
     
     cpu_level = 4;
-    if (state->model > 2) { bits = 32; }
+    /*if (state->model > 2) { bits = 32; }*/
 
 }
 
@@ -1137,7 +1137,7 @@ static void handler_586 (char **pp) {
     (void) pp;
     
     cpu_level = 5;
-    if (state->model > 2) { bits = 32; }
+    /*if (state->model > 2) { bits = 32; }*/
 
 }
 
@@ -1146,7 +1146,7 @@ static void handler_686 (char **pp) {
     (void) pp;
     
     cpu_level = 6;
-    if (state->model > 2) { bits = 32; }
+    /*if (state->model > 2) { bits = 32; }*/
 
 }
 
