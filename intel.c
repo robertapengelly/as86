@@ -4229,7 +4229,7 @@ char *machine_dependent_assemble_line (char *line) {
     
     if (current_templates[0].start->base_opcode == 0xC0 && instruction.operands == 2 && instruction.types[1] & IMM) {
     
-        if (instruction.imms[1]->type == EXPR_TYPE_CONSTANT && instruction.imms[1]->add_number) {
+        if (instruction.imms[1]->type == EXPR_TYPE_CONSTANT && instruction.imms[1]->add_number == 1) {
             instruction.operands--;
         }
     
@@ -4303,9 +4303,9 @@ char *machine_dependent_assemble_line (char *line) {
         
         }
         
-        if (instruction.template.base_opcode == 0xff && instruction.template.extension_opcode < 6 && state->model >= 4) {
+        /*if (instruction.template.base_opcode == 0xff && instruction.template.extension_opcode < 6 && state->model >= 4) {
             frag_append_1_char (0x2E);
-        }
+        }*/
         
         if (instruction.template.base_opcode & 0xff00) {
             frag_append_1_char ((instruction.template.base_opcode >> 8) & 0xff);
