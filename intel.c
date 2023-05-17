@@ -3822,7 +3822,7 @@ static int match_template (void) {
     
     if (state->model < 7) {
     
-        if (template->base_opcode == 0xC3 && instruction.operands == 0 && state->model >= 4 && state->procs.length > 0) {
+        if (template->base_opcode == 0xC3 && xstrcasecmp (template->name, "retn") && instruction.operands == 0 && state->model >= 4 && state->procs.length > 0) {
             instruction.template.base_opcode = 0xCB;
         }
         
