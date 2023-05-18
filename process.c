@@ -1101,7 +1101,7 @@ int process_file (const char *fname) {
                             
                             } else if (xstrcasecmp (start_p, "ptr") == 0) { 
                             
-                                if (machine_dependent_get_bits () == 32 || state->model == 5) {
+                                if (machine_dependent_get_bits () == 32 || state->model >= 5) {
                                 
                                     sprintf (temp, "%s [bp + %d]", name, offset);
                                     offset += 4;
