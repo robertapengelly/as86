@@ -1181,8 +1181,12 @@ int process_file (const char *fname) {
                             
                             if (proc->regs.length > 0) {
                             
+                                unsigned char last_inst = current_frag->buf[current_frag->fixed_size - 1];
+                                
                                 char *temp, *reg;
                                 int32_t i;
+                                
+                                current_frag->fixed_size--;
                                 
                                 for (i = proc->regs.length - 1; i >= 0; --i) {
                                 
@@ -1195,6 +1199,7 @@ int process_file (const char *fname) {
                                 
                                 }
                                 
+                                frag_append_1_char (last_inst);
                                 proc->regs.length = 0;
                             
                             }
