@@ -1178,18 +1178,44 @@ int process_file (const char *fname) {
                             } else {
                                 state->procs.length = last;
                             }
+                            
+                            if (proc->regs.length > 0) {
+                            
+                                char *temp, *reg;
+                                int32_t i;
+                                
+                                for (i = proc->regs.length - 1; i >= 0; --i) {
+                                
+                                    reg = proc->regs.data[i];
+                                    
+                                    temp = xmalloc (3 + 1 + strlen (reg) + 1);
+                                    sprintf (temp, "pop %s", reg);
+                                    
+                                    machine_dependent_assemble_line (temp);
+                                
+                                }
+                                
+                                proc->regs.length = 0;
+                            
+                            }
+                            
+                            if (proc->args.length > 0) {
+                            
+                                if (current_frag->buf[current_frag->fixed_size - 1] == 0xCB) {
+                                
+                                    current_frag->buf[current_frag->fixed_size - 1] = 0x5D;
+                                    frag_append_1_char (0xCB);
+                                
+                                }
+                                
+                                proc->args.length = 0;
+                            
+                            }
                         
                         }
                         
                         *temp_line = temp_ch;
                         line = temp_line;
-                        
-                        if (current_frag->buf[current_frag->fixed_size - 1] == 0xCB) {
-                        
-                            current_frag->buf[current_frag->fixed_size - 1] = 0x5D;
-                            frag_append_1_char (0xCB);
-                        
-                        }
                         
                         demand_empty_rest_of_line (&line);
                         continue;
