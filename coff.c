@@ -186,7 +186,7 @@ void coff_write_object (void) {
             
             write741_to_byte_array (section_header->SizeOfRawData, SizeOfRawData);
             
-            if (section_header->SizeOfRawData == 0) {
+            if (SizeOfRawData == 0) {
                 write741_to_byte_array (section_header->PointerToRawData, 0);
             }
         
@@ -253,7 +253,7 @@ void coff_write_object (void) {
 
             write741_to_byte_array (sym_tbl_ent.Value, symbol_get_value (symbol));
 
-            if (!sym_tbl_ent.SectionNumber) {
+            if (!GET_UINT16 (sym_tbl_ent.SectionNumber)) {
 
                 if (symbol->section == undefined_section) {
                     write721_to_byte_array (sym_tbl_ent.SectionNumber, IMAGE_SYM_UNDEFINED);
@@ -263,7 +263,7 @@ void coff_write_object (void) {
 
             }
 
-            if (!sym_tbl_ent.Type) {
+            if (!GET_UINT16 (sym_tbl_ent.Type)) {
                 write721_to_byte_array (sym_tbl_ent.Type, ((IMAGE_SYM_DTYPE_NULL << 8) | IMAGE_SYM_TYPE_NULL));
             }
 
