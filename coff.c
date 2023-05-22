@@ -88,6 +88,51 @@ static int output_relocation (FILE *outfile, struct fixup *fixup) {
 
 #define     GET_UINT16(arr)             ((uint32_t) arr[0] | (((uint32_t) arr[1]) << 8))
 
+static unsigned long translate_section_flags_to_Characteristics (unsigned int flags) {
+
+    unsigned long Characteristics = 0;
+    
+    if (!(flags & SECTION_FLAG_READONLY)) {
+        Characteristics |= IMAGE_SCN_MEM_WRITE;
+    }
+    
+    if (flags & SECTION_FLAG_CODE) {
+        Characteristics |= IMAGE_SCN_CNT_CODE | IMAGE_SCN_MEM_EXECUTE;
+    }
+    
+    if (flags & SECTION_FLAG_DATA) {
+        Characteristics |= IMAGE_SCN_CNT_INITIALIZED_DATA;
+    }
+    
+    if (flags & SECTION_FLAG_NEVER_LOAD) {
+        Characteristics |= IMAGE_SCN_TYPE_NOLOAD;
+    }
+    
+    if (flags & SECTION_FLAG_DEBUGGING) {
+        Characteristics |= IMAGE_SCN_LNK_INFO;
+    }
+    
+    if (flags & SECTION_FLAG_EXCLUDE) {
+        Characteristics |= IMAGE_SCN_LNK_REMOVE;
+    }
+    
+    if (!(flags & SECTION_FLAG_NOREAD)) {
+        Characteristics |= IMAGE_SCN_MEM_READ;
+    }
+    
+    if (flags & SECTION_FLAG_SHARED) {
+        Characteristics |= IMAGE_SCN_MEM_SHARED;
+    }
+    
+    /* .bss */
+    if ((flags & SECTION_FLAG_ALLOC) && !(flags & SECTION_FLAG_LOAD)) {
+        Characteristics |= IMAGE_SCN_CNT_UNINITIALIZED_DATA;
+    }
+    
+    return Characteristics;
+
+}
+
 void coff_write_object (void) {
 
     struct coff_header header;
@@ -112,7 +157,7 @@ void coff_write_object (void) {
     write721_to_byte_array (header.Machine, IMAGE_FILE_MACHINE_I386);
     write721_to_byte_array (header.NumberOfSections, sections_get_count ());
     write721_to_byte_array (header.SizeOfOptionalHeader, 0);
-    write721_to_byte_array (header.Characteristics, IMAGE_FILE_LINE_NUMS_STRIPPED);
+    write721_to_byte_array (header.Characteristics, IMAGE_FILE_LINE_NUMS_STRIPPED | IMAGE_FILE_32BIT_MACHINE);
     
     if (fseek (outfile, (sizeof (header) + sections_get_count () * sizeof (struct section_table_entry)), SEEK_SET)) {
     
@@ -140,28 +185,19 @@ void coff_write_object (void) {
     
     for (section = sections; section; section = section_get_next_section (section)) {
     
+        uint32_t SizeOfRawData = 0;
+        
         struct section_table_entry *section_header = xmalloc (sizeof (*section_header));
         section_set_object_format_dependent_data (section, section_header);
         
         memset (section_header, 0, sizeof (*section_header));
         strcpy (section_header->Name, section_get_name (section));
         
-        if (section == text_section) {
-            write741_to_byte_array (section_header->Characteristics, (IMAGE_SCN_CNT_CODE | IMAGE_SCN_MEM_EXECUTE | IMAGE_SCN_MEM_READ));
-        } else if (section == data_section) {
-            write741_to_byte_array (section_header->Characteristics, (IMAGE_SCN_CNT_INITIALIZED_DATA | IMAGE_SCN_MEM_WRITE | IMAGE_SCN_MEM_READ));
-        } else if (section == bss_section) {
-            write741_to_byte_array (section_header->Characteristics, (IMAGE_SCN_CNT_UNINITIALIZED_DATA | IMAGE_SCN_MEM_WRITE | IMAGE_SCN_MEM_READ));
-        } else {
-            /* .idata, for example. */
-            write741_to_byte_array (section_header->Characteristics, (IMAGE_SCN_CNT_INITIALIZED_DATA | IMAGE_SCN_MEM_WRITE | IMAGE_SCN_MEM_READ));
-        }
+        write741_to_byte_array (section_header->Characteristics, translate_section_flags_to_Characteristics (section_get_flags (section)));
         
         if (section != bss_section) {
         
-            uint32_t SizeOfRawData = 0;
             struct frag *frag;
-            
             section_set (section);
             
             write741_to_byte_array (section_header->PointerToRawData, ftell (outfile));
@@ -192,11 +228,11 @@ void coff_write_object (void) {
         
         } else {
         
-            uint32_t VirtualSize = 0;
             struct frag *frag;
-            
             section_set (section);
-            write741_to_byte_array (section_header->VirtualSize, 0);
+            
+            write741_to_byte_array (section_header->PointerToRawData, ftell (outfile));
+            write741_to_byte_array (section_header->SizeOfRawData, 0);
             
             for (frag = current_frag_chain->first_frag; frag; frag = frag->next) {
             
@@ -204,11 +240,11 @@ void coff_write_object (void) {
                     continue;
                 }
                 
-                VirtualSize += frag->fixed_size;
+                SizeOfRawData += frag->fixed_size;
             
             }
             
-            write741_to_byte_array (section_header->VirtualSize, VirtualSize);
+            write741_to_byte_array (section_header->SizeOfRawData, SizeOfRawData);
         
         }
     
@@ -434,6 +470,7 @@ static void handler_bss (char **pp) {
 static void handler_segment (char **pp) {
 
     char saved_ch, *name = *pp;
+    unsigned int flags = 0, old_flags;
     
     while (**pp && **pp != ' ' && **pp != '\n') {
         ++(*pp);
@@ -444,6 +481,24 @@ static void handler_segment (char **pp) {
     
     section_set_by_name (name);
     **pp = saved_ch;
+    
+    old_flags = section_get_flags (current_section);
+    
+    if (old_flags == 0) {
+    
+        if (flags == 0) {
+            flags = (SECTION_FLAG_LOAD | SECTION_FLAG_DATA);
+        }
+        
+        section_set_flags (current_section, flags);
+    
+    } else if (flags != 0) {
+    
+        if (flags ^ old_flags) {
+            report (REPORT_WARNING, "Ignoring changed section attributes for %s", section_get_name (current_section));
+        }
+    
+    }
     
     demand_empty_rest_of_line (pp);
 

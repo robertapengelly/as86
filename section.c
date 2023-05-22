@@ -18,6 +18,7 @@ struct section {
     struct symbol *symbol;
     struct frag_chain *frag_chain;
     
+    unsigned int flags;
     section_t next;
     
     void *object_format_dependent_data;
@@ -239,8 +240,13 @@ void sections_init (void) {
 #undef CREATE_INTERNAL_SECTION
     
     text_section      = section_set_by_name (".text");
+    section_set_flags (text_section, SECTION_FLAG_LOAD | SECTION_FLAG_ALLOC | SECTION_FLAG_READONLY | SECTION_FLAG_CODE);
+    
     data_section      = section_set_by_name (".data");
+    section_set_flags (data_section, SECTION_FLAG_LOAD | SECTION_FLAG_ALLOC | SECTION_FLAG_DATA);
+    
     bss_section       = section_set_by_name (".bss");
+    section_set_flags (bss_section, SECTION_FLAG_ALLOC);
     
     /* .text section is the default section. */
     section_set (text_section);
@@ -263,4 +269,12 @@ void *section_get_object_format_dependent_data (section_t section) {
 
 void section_set_object_format_dependent_data (section_t section, void *data) {
     section->object_format_dependent_data = data;
+}
+
+void section_set_flags (section_t section, unsigned int flags) {
+    section->flags = flags;
+}
+
+unsigned int section_get_flags (section_t section) {
+    return section->flags;
 }

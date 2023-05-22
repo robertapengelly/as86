@@ -2187,7 +2187,7 @@ static void output_call_or_jumpbyte (void) {
         fixup_new_expr (current_frag, current_frag->fixed_size, size, instruction.disps[0], 1, RELOC_TYPE_DEFAULT, 0);
         frag_increase_fixed_size (size);
     
-    } else if (!instruction.far_call && size == 2) {
+    } else if ((!instruction.far_call && size == 2) || state->model == 7) {
     
         if (instruction.disps[0]->type == EXPR_TYPE_CONSTANT) {
         

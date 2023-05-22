@@ -7,6 +7,17 @@
 #include    "fixup.h"
 #include    "types.h"
 
+#define     SECTION_FLAG_ALLOC          (1U << 0)
+#define     SECTION_FLAG_LOAD           (1U << 1)
+#define     SECTION_FLAG_READONLY       (1U << 2)
+#define     SECTION_FLAG_CODE           (1U << 3)
+#define     SECTION_FLAG_DATA           (1U << 4)
+#define     SECTION_FLAG_NEVER_LOAD     (1U << 5)
+#define     SECTION_FLAG_DEBUGGING      (1U << 6)
+#define     SECTION_FLAG_EXCLUDE        (1U << 7)
+#define     SECTION_FLAG_NOREAD         (1U << 8)
+#define     SECTION_FLAG_SHARED         (1U << 9)
+
 struct frag_chain {
 
     frag_t first_frag, last_frag;
@@ -57,5 +68,9 @@ void sections_number (uint32_t start_at);
 
 void *section_get_object_format_dependent_data (section_t section);
 void section_set_object_format_dependent_data (section_t section, void *data);
+
+
+void section_set_flags (section_t section, unsigned int flags);
+unsigned int section_get_flags (section_t section);
 
 #endif      /* _SECTION_H */
