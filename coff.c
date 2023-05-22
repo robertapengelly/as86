@@ -231,7 +231,7 @@ void coff_write_object (void) {
             struct frag *frag;
             section_set (section);
             
-            write741_to_byte_array (section_header->PointerToRawData, ftell (outfile));
+            write741_to_byte_array (section_header->PointerToRawData, 0);
             write741_to_byte_array (section_header->SizeOfRawData, 0);
             
             for (frag = current_frag_chain->first_frag; frag; frag = frag->next) {
