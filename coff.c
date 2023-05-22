@@ -507,6 +507,7 @@ static void handler_segment (char **pp) {
 static struct pseudo_op pseudo_ops[] = {
 
     { ".bss",           handler_bss         },
+    { ".data?",         handler_bss             },
     { ".section",       handler_segment     },
     
     { "section",        handler_segment     },
