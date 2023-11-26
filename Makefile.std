@@ -1,0 +1,22 @@
+AS=pdas --oformat coff
+CC=gccwin
+LD=pdld
+
+COPTS=-S -O2 -fno-common -ansi -I. -I../pdos/pdpclib -D__WIN32__ -D__NOBIVA__ -D__PDOS__
+COBJ=aout.obj as.obj coff.obj cstr.obj expr.obj fixup.obj \
+  frag.obj hashtab.obj intel.obj lib.obj listing.obj \
+  load_line.obj macro.obj process.obj pseudo_ops.obj \
+  report.obj section.obj symbol.obj vector.obj write.obj write7x.obj
+
+all: clean as86.exe
+
+as86.exe: $(COBJ)
+  $(LD) -s -nostdlib --no-insert-timestamp -o as86.exe ../pdos/pdpclib/w32start.obj $(COBJ) ../pdos/pdpclib/msvcrt.lib
+
+.c.obj:
+  $(CC) $(COPTS) $<
+  $(AS) -o $@ $*.s
+  rm -f $*.s
+
+clean:
+  rm -f *.obj as86.exe
