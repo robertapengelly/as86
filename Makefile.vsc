@@ -1,0 +1,19 @@
+CC=cl
+LD=cl
+
+COPTS=-c -O2 -nologo -I.
+COBJ=aout.obj as.obj coff.obj cstr.obj expr.obj fixup.obj frag.obj \
+  hashtab.obj intel.obj lib.obj listing.obj load_line.obj macro.obj \
+  process.obj pseudo_ops.obj report.obj section.obj symbol.obj \
+  vector.obj write.obj write7x.obj
+
+all: clean as86.exe
+
+as86.exe: $(COBJ)
+  $(LD) -nologo -Feas86.exe $(COBJ)
+
+.c.obj:
+  $(CC) $(COPTS) -Fo$@ $<
+
+clean:
+  rm -f *.obj as86.exe
