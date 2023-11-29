@@ -1211,6 +1211,11 @@ int process_file (const char *fname) {
                                     current_frag->buf[current_frag->fixed_size - 1] = 0x5D;
                                     frag_append_1_char (0xCB);
                                 
+                                } else if (current_frag->buf[current_frag->fixed_size - 1] == 0xC3) {
+                                
+                                    current_frag->buf[current_frag->fixed_size - 1] = 0x5D;
+                                    frag_append_1_char (0xC3);
+                                
                                 }
                                 
                                 proc->args.length = 0;
