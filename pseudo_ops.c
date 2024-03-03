@@ -766,6 +766,7 @@ static struct pseudo_op pseudo_ops[] = {
     { ".align",     handler_align_bytes },
     { ".ascii",     handler_ascii       },
     { ".asciz",     handler_asciz       },
+    { ".balign",    handler_align_bytes },
     { ".code",      handler_text        },
     { ".data",      handler_data        },
     { ".define",    handler_define      },
