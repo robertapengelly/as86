@@ -1561,7 +1561,7 @@ static int process_suffix (void) {
         
         for (op = instruction.operands; --op >= 0; ) {
         
-            if (instruction.types[op] & ANY_MEM && instruction.disps[op]->add_symbol != NULL) {
+            if ((instruction.types[op] & ANY_MEM) && instruction.disps[op] && instruction.disps[op]->add_symbol != NULL) {
             
                 instruction.suffix = ((instruction.disps[op]->add_symbol->size == 1) ? BYTE_SUFFIX : (instruction.disps[op]->add_symbol->size == 2) ? WORD_SUFFIX : DWORD_SUFFIX);
                 break;
