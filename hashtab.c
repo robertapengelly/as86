@@ -95,23 +95,24 @@ static struct hashtab_entry *find_entry (struct hashtab_entry *entries, unsigned
 
 }
 
-static unsigned long hash_string (const void *p, unsigned long length) {
+static unsigned int hash_string (const void *p, unsigned int length) {
 
-    const unsigned char *str = (const unsigned char *) p;
-    unsigned long i, result = 0;
+    unsigned char *str = (unsigned char *) p;
+    unsigned int i;
     
-    for (i = 0; i < length; ++i) {
-        result = (str[i] << 24) + (result >> 19) + (result << 16) + (result >> 13) + (str[i] << 8) - result;
+    unsigned int result = 0;
+    
+    for (i = 0; i < length; i++) {
+        result = (((unsigned short) str[i]) << 4) + (result >> 9) + result + (result >> 3) + (((unsigned short) str[i]) << 2) - (result << 12);
     }
     
     return result;
 
 }
-
 struct hashtab_name *hashtab_alloc_name (const char *str) {
 
+    unsigned int bytes = strlen (str), hash = hash_string (str, bytes);
     struct hashtab_name *name;
-    unsigned long bytes = strlen (str), hash = hash_string (str, bytes);
     
     if ((name = malloc (sizeof (*name))) == NULL) {
         return NULL;

@@ -6,6 +6,9 @@
 
 #include    "types.h"
 
+#define fixup_new_expr funewexpr
+
+
 struct fixup {
 
     frag_t frag;

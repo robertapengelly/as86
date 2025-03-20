@@ -4,6 +4,10 @@
 #ifndef     _EXPR_H
 #define     _EXPR_H
 
+
+#define current_location curloc
+
+
 enum expr_type {
 
     EXPR_TYPE_INVALID,

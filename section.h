@@ -7,6 +7,34 @@
 #include    "fixup.h"
 #include    "types.h"
 
+
+#define section_get_next_section sgns
+#define section_set sset
+#define section_set_by_name ssbynam
+#define section_subsection_set ssubset
+#define section_subsection_set_by_name sssbyname
+#define section_symbol ssym
+#define section_get_name sgetnam
+#define section_find_by_name sfindbyname
+#define section_get_number sgetnum
+#define section_get_object_format_dependent_data sgofdd
+#define section_set_object_format_dependent_data ssofdd
+#define section_set_flags ssflags
+#define section_get_flags sgflags
+
+#define sections_get_count secsgc
+#define sections_chain_subsection_frags secscsf
+#define sections_init secsinit
+#define sections_number secsnum
+
+#define current_section cursec
+#define current_subsection curssec
+
+#define absolute_section abssect
+
+#define current_frag_chain curfrchn
+
+
 #define     SECTION_FLAG_ALLOC          (1U << 0)
 #define     SECTION_FLAG_LOAD           (1U << 1)
 #define     SECTION_FLAG_READONLY       (1U << 2)

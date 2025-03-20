@@ -6,6 +6,10 @@
 
 #include    "types.h"
 
+#define frag_alloc_space faspace
+#define frag_align_code facode
+
+
 struct frag {
 
     address_t address;

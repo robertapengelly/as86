@@ -10,6 +10,7 @@
 #include    "as.h"
 #include    "frag.h"
 #include    "intel.h"
+#include    "lex.h"
 #include    "lib.h"
 #include    "pseudo_ops.h"
 #include    "report.h"
@@ -438,8 +439,6 @@ out:
 
 }
 
-extern const char is_end_of_line[];
-
 extern char get_symbol_name_end (char **pp);
 extern void ignore_rest_of_line (char **pp);
 
@@ -456,7 +455,7 @@ static void handler_masm_segment (char **pp) {
     
         *pp = skip_whitespace (*pp);
         
-        if (is_end_of_line[(int) **pp]) {
+        if (is_end_of_line (**pp)) {
             break;
         }
         
@@ -464,7 +463,7 @@ static void handler_masm_segment (char **pp) {
         
             arg = ++(*pp);
             
-            while (!is_end_of_line[(int) **pp] && **pp != '\'') {
+            while (!is_end_of_line (**pp) && **pp != '\'') {
                 (*pp)++;
             }
             

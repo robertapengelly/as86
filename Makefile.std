@@ -1,17 +1,45 @@
-AS=pdas --oformat coff
-CC=gccwin
-LD=pdld
+#
+#
+#
 
+ifeq "$(targ)" "zpg"
+# You need to have run makefile.zpg first
+CC=gccmvs
+AS=as370 -mhlasm -mebcdic
+LD=pdld -s -nostdlib --no-insert-timestamp
+EXTRA1=--oformat mvs -e __crt0 ../pdos/pdpclib/pgastart.o
+EXTRA2=
+# We shouldn't really have this application-level __PDOS__ define
+COPTS=-S -Os -fno-common -ansi -I. -I../pdos/pdpclib \
+    -D__PDOS__ \
+    -I../pdos/generic -I../pdos/src \
+    -U__MVS__ -D__MF32__ -D__PDOSGEN__ -D__NOBIVA__ \
+    -DCONV_CHARSET -DCONVTMAC= -DCONVFMAC=
+
+else
+CC=gccwin
+AS=pdas --oformat coff
+LD=pdld -s -nostdlib --no-insert-timestamp
+EXTRA1=../pdos/pdpclib/w32start.obj
+EXTRA2=../pdos/pdpclib/msvcrt.lib
 COPTS=-S -O2 -fno-common -ansi -I. -I../pdos/pdpclib -D__WIN32__ -D__NOBIVA__ -D__PDOS__
+endif
+
 COBJ=aout.obj as.obj coff.obj cstr.obj expr.obj fixup.obj \
   frag.obj hashtab.obj intel.obj lib.obj listing.obj \
   load_line.obj macro.obj process.obj pseudo_ops.obj \
   report.obj section.obj symbol.obj vector.obj write.obj write7x.obj
 
+
+ifeq "$(targ)" "zpg"
+COBJ:=$(COBJ) tasc.obj
+endif
+
+
 all: clean as86.exe
 
 as86.exe: $(COBJ)
-  $(LD) -s -nostdlib --no-insert-timestamp -o as86.exe ../pdos/pdpclib/w32start.obj $(COBJ) ../pdos/pdpclib/msvcrt.lib
+  $(LD) -o as86.exe $(EXTRA1) $(COBJ) $(EXTRA2)
 
 .c.obj:
   $(CC) $(COPTS) $<

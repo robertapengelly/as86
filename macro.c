@@ -4,12 +4,11 @@
 #include    <stdlib.h>
 
 #include    "hashtab.h"
+#include    "lex.h"
 #include    "lib.h"
 #include    "macro.h"
 
 struct hashtab hashtab_macros = { 0 };
-
-extern char is_end_of_line[];
 extern void ignore_rest_of_line (char **pp);
 
 int has_macro (char *p) {
@@ -39,7 +38,7 @@ void handler_define (char **pp) {
     *pp = skip_whitespace (*pp);
     name = *pp;
     
-    while (**pp && **pp != ' ' && !is_end_of_line[(int) **pp]) {
+    while (**pp && **pp != ' ' && !is_end_of_line (**pp)) {
         (*pp)++;
     }
     
@@ -58,7 +57,7 @@ void handler_define (char **pp) {
     *pp = skip_whitespace (*pp + 1);
     value = *pp;
     
-    while (**pp && !is_end_of_line[(int) **pp]) {
+    while (**pp && !is_end_of_line (**pp)) {
         (*pp)++;
     }
     

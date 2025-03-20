@@ -4,6 +4,28 @@
 #ifndef     _INTEL_H
 #define     _INTEL_H
 
+
+#define machine_dependent_number_to_chars mdntoc
+#define machine_dependent_parse_operator mdpop
+#define machine_dependent_simplified_expression_read_into mdseri
+#define machine_dependent_assemble_line mdaline
+#define machine_dependent_force_relocation_local mdfrl
+#define machine_dependent_get_bits mdgbits
+#define machine_dependent_get_cpu mdgcpu
+#define machine_dependent_is_register mdisreg
+#define machine_dependent_need_index_operator mdnindex
+#define machine_dependent_parse_name mdparsnam
+#define machine_dependent_estimate_size_before_relax mdesbr
+#define machine_dependent_pcrel_from mdpcrel
+#define machine_dependent_relax_frag mdrelfrag
+#define machine_dependent_apply_fixup mdappfix
+#define machine_dependent_finish_frag mdfinfrag
+#define machine_dependent_init mdinit
+#define machine_dependent_parse_operand mdparsop
+#define machine_dependent_set_bits mdsetbits
+#define machine_dependent_set_cpu mdsetcpu
+
+
 #define     NO_BSUF                     0x00000040
 #define     NO_WSUF                     0x00000080
 #define     NO_SSUF                     0x00000100

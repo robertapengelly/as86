@@ -11,14 +11,13 @@
 #include    "hashtab.h"
 #include    "intel.h"
 #include    "macro.h"
+#include    "lex.h"
 #include    "lib.h"
 #include    "pseudo_ops.h"
 #include    "report.h"
 #include    "section.h"
 #include    "symbol.h"
 #include    "types.h"
-
-extern const char is_end_of_line[];
 
 extern char get_symbol_name_end (char **pp);
 extern int read_and_append_char_in_ascii (char **pp, int double_quotes, int size);
@@ -463,7 +462,7 @@ static void handler_end (char **pp) {
 
     *pp = skip_whitespace (*pp);
     
-    if (!is_end_of_line[(int) **pp]) {
+    if (!is_end_of_line (**pp)) {
     
         char *sym = *pp;
         char saved_ch = get_symbol_name_end (pp);

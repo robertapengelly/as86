@@ -6,10 +6,15 @@
 
 #include    <stddef.h>
 
+#define hashtab_get haget
+#define hashtab_put haput
+#define hashtab_remove haremove
+
+
 struct hashtab_name {
 
     const char *chars;
-    unsigned long bytes, hash;
+    unsigned int bytes, hash;
 
 };
 

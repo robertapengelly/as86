@@ -7,6 +7,38 @@
 #include    "expr.h"
 #include    "types.h"
 
+
+#define symbol_get_value_expression symgve
+#define symbol_create symcreate
+#define symbol_find symfind
+#define symbol_find_or_make symformake
+#define symbol_label symlab
+#define symbol_make symmake
+#define symbol_temp_new_now symtnn
+#define symbol_get_frag symgfrag
+#define symbol_get_section symgsec
+#define symbol_get_value symgval
+#define symbol_resolve_value symresval
+#define symbol_get_name symgname
+#define symbol_force_reloc symfreloc
+#define symbol_is_external symisext
+#define symbol_is_resolved symisres
+#define symbol_is_section_symbol symisss
+#define symbol_is_undefined symisund
+#define symbol_uses_other_symbol symuos
+#define symbol_uses_reloc_symbol symurelsym
+#define symbol_get_symbol_table_index symgsti
+#define symbol_add_to_chain symatoc
+#define symbol_set_external symsext
+#define symbol_set_frag symsfrag
+#define symbol_set_section symssec
+#define symbol_set_size symssiz
+#define symbol_set_symbol_table_index symssti
+#define symbol_set_value symsval
+#define symbol_set_value_expression symsvexp
+#define get_symbol_snapshot gsymsnap
+
+
 struct symbol {
 
     char *name;

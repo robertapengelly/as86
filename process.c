@@ -48,13 +48,13 @@ char lex_table[256] = {
  *
  * Line separators allowing having multiple logical lines on a single physical line.
  */
-char is_end_of_line[256] = {
+char is_end_of_line_array[256] = {
     1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0 /* '\0' and '\n' */
 };
 
 static char *find_end_of_line (char *line) {
 
-    while (!is_end_of_line[(int) *line]) {
+    while (!is_end_of_line (*line)) {
         ++(line);
     }
     
@@ -229,7 +229,7 @@ void demand_empty_rest_of_line (char **pp) {
 
     *pp = skip_whitespace (*pp);
     
-    if (is_end_of_line[(int) **pp]) {
+    if (is_end_of_line (**pp)) {
         ++(*pp);
     } else {
     
@@ -276,7 +276,7 @@ static int handler_ifdef (char **pp) {
 
     char saved_ch, *temp = *pp;
     
-    while (!is_end_of_line[(int) *temp]) {
+    while (!is_end_of_line (*temp)) {
         ++(temp);
     }
     
@@ -299,7 +299,7 @@ static int handler_ifndef (char **pp) {
 
     char saved_ch, *temp = *pp;
     
-    while (!is_end_of_line[(int) *temp]) {
+    while (!is_end_of_line (*temp)) {
         ++(temp);
     }
     
@@ -396,7 +396,7 @@ static int handler_elifdef (char **pp) {
     
         char saved_ch, *temp = *pp;
         
-        while (!is_end_of_line[(int) *temp]) {
+        while (!is_end_of_line (*temp)) {
             ++(temp);
         }
         
@@ -452,7 +452,7 @@ static int handler_elifndef (char **pp) {
     
         char saved_ch, *temp = *pp;
         
-        while (!is_end_of_line[(int) *temp]) {
+        while (!is_end_of_line (*temp)) {
             ++(temp);
         }
         
@@ -1022,7 +1022,7 @@ int process_file (const char *fname) {
                             char *reg;
                             *line = saved_ch;
                             
-                            while (!is_end_of_line[(int) *line] && *line == ' ') {
+                            while (!is_end_of_line (*line) && *line == ' ') {
                             
                                 line = skip_whitespace (line);
                                 
@@ -1130,7 +1130,7 @@ int process_file (const char *fname) {
                             *line = saved_ch;
                             line = skip_whitespace (line);
                         
-                        } while (!is_end_of_line[(int) *line] && *line == ',');
+                        } while (!is_end_of_line (*line) && *line == ',');
                         
                         if (proc->args.length > 0) {
                         
@@ -1301,7 +1301,7 @@ int process_file (const char *fname) {
             
             }
             
-            if (is_end_of_line[(int) *line]) {
+            if (is_end_of_line (*line)) {
             
                 line++;
                 continue;

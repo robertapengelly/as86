@@ -17,6 +17,7 @@
 #include    "section.h"
 #include    "symbol.h"
 #include    "types.h"
+#include    "macro.h"
 
 /**
  * Expression symbols are mapped to file positions to provide
@@ -151,9 +152,6 @@ static void integer_constant (char **pp, struct expr *expr, uint32_t radix) {
 
 }
 
-extern struct hashtab hashtab_macros;
-
-extern const char is_end_of_line[];
 extern char get_symbol_name_end (char **pp);
 
 static section_t operand (char **pp, struct expr *expr, enum expr_mode expr_mode) {
@@ -174,7 +172,7 @@ static section_t operand (char **pp, struct expr *expr, enum expr_mode expr_mode
     *pp = skip_whitespace (*pp);
     temp = *pp;
     
-    if (is_end_of_line[(int) **pp]) {
+    if (is_end_of_line (**pp)) {
         goto end_of_line;
     }
     
@@ -205,7 +203,7 @@ static section_t operand (char **pp, struct expr *expr, enum expr_mode expr_mode
         
             temp = *pp;
             
-            while (!is_end_of_line[(int) *temp] && isxdigit ((int) *temp)) {
+            while (!is_end_of_line (*temp) && isxdigit ((int) *temp)) {
                 ++(temp);
             }
             
@@ -226,7 +224,7 @@ static section_t operand (char **pp, struct expr *expr, enum expr_mode expr_mode
             
             temp = *pp;
             
-            while (!is_end_of_line[(int) *temp] && isxdigit ((int) *temp)) {
+            while (!is_end_of_line (*temp) && isxdigit ((int) *temp)) {
                 ++(temp);
             }
             

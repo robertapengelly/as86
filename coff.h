@@ -6,6 +6,10 @@
 
 #include    "stdint.h"
 
+
+#define install_coff_pseudo_ops inscoffpo
+
+
 struct coff_header {
 
     unsigned char Machine[2];
