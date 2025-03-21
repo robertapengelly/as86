@@ -2,6 +2,7 @@
  * @file            process.c
  *****************************************************************************/
 #include    <ctype.h>
+#include    <limits.h>
 #include    <stddef.h>
 #include    <stdio.h>
 #include    <stdlib.h>
@@ -22,6 +23,13 @@
 #include    "section.h"
 #include    "symbol.h"
 #include    "vector.h"
+
+#if     defined (CONV_CHARSET)
+# include       <tasc.h>
+# define    ttgtchs(c)                  (tasc (c))
+#else
+# define    ttgtchs(c)                  (c)
+#endif
 
 static const char *filename = 0;
 static unsigned long line_number = 0;
@@ -97,7 +105,7 @@ int read_and_append_char_in_ascii (char **pp, int double_quotes, int size) {
             }
             
             for (i = 0; i < size; i++) {
-                frag_append_1_char ((ch >> (8 * i)) & 0xff);
+                frag_append_1_char ((ttgtchs (ch) >> (CHAR_BIT * i)) & UCHAR_MAX);
             }
             
             break;
@@ -109,7 +117,7 @@ int read_and_append_char_in_ascii (char **pp, int double_quotes, int size) {
             }
             
             for (i = 0; i < size; i++) {
-                frag_append_1_char ((ch >> (8 * i)) & 0xff);
+                frag_append_1_char ((ttgtchs (ch) >> (CHAR_BIT * i)) & UCHAR_MAX);
             }
             
             break;
@@ -127,7 +135,7 @@ int read_and_append_char_in_ascii (char **pp, int double_quotes, int size) {
             ++line_number;
             
             for (i = 0; i < size; i++) {
-                frag_append_1_char ((ch >> (8 * i)) & 0xff);
+                frag_append_1_char ((ttgtchs (ch) >> (CHAR_BIT * i)) & UCHAR_MAX);
             }
             
             break;
@@ -152,7 +160,7 @@ int read_and_append_char_in_ascii (char **pp, int double_quotes, int size) {
                     }
                     
                     for (i = 0; i < size; i++) {
-                        frag_append_1_char ((number >> (8 * i)) & 0xff);
+                        frag_append_1_char ((number >> (CHAR_BIT * i)) & UCHAR_MAX);
                     }
                     
                     (*pp)--;
@@ -163,7 +171,7 @@ int read_and_append_char_in_ascii (char **pp, int double_quotes, int size) {
                     number = 13;
                     
                     for (i = 0; i < size; i++) {
-                        frag_append_1_char ((number >> (8 * i)) & 0xff);
+                        frag_append_1_char ((number >> (CHAR_BIT * i)) & UCHAR_MAX);
                     }
                     
                     break;
@@ -173,7 +181,7 @@ int read_and_append_char_in_ascii (char **pp, int double_quotes, int size) {
                     number = 10;
                     
                     for (i = 0; i < size; i++) {
-                        frag_append_1_char ((number >> (8 * i)) & 0xff);
+                        frag_append_1_char ((number >> (CHAR_BIT * i)) & UCHAR_MAX);
                     }
                     
                     break;
@@ -183,7 +191,7 @@ int read_and_append_char_in_ascii (char **pp, int double_quotes, int size) {
                 case '\'':
                 
                     for (i = 0; i < size; i++) {
-                        frag_append_1_char ((ch >> (8 * i)) & 0xff);
+                        frag_append_1_char ((ttgtchs (ch) >> (CHAR_BIT * i)) & UCHAR_MAX);
                     }
                     
                     break;
@@ -200,7 +208,7 @@ int read_and_append_char_in_ascii (char **pp, int double_quotes, int size) {
         default:
         
             for (i = 0; i < size; i++) {
-                frag_append_1_char ((ch >> (8 * i)) & 0xff);
+                frag_append_1_char ((ttgtchs (ch) >> (CHAR_BIT * i)) & UCHAR_MAX);
             }
             
             break;

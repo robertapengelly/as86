@@ -144,7 +144,9 @@ void coff_write_object (void) {
     uint32_t string_table_size = 4;
     uint32_t NumberOfSymbols = 0;
     
+    unsigned char temp[4];
     sections_number (1);
+    
     memset (&header, 0, sizeof (header));
     
     if ((outfile = fopen (state->outfile, "wb")) == NULL) {
@@ -354,8 +356,9 @@ void coff_write_object (void) {
     }
     
     write741_to_byte_array (header.NumberOfSymbols, NumberOfSymbols);
+    write741_to_byte_array (temp, string_table_size);
     
-    if (fwrite (&string_table_size, 4, 1, outfile) != 1) {
+    if (fwrite (temp, 4, 1, outfile) != 1) {
     
         report_at (NULL, 0, REPORT_ERROR, "Failed to write string table!");
         return;
