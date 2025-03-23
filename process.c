@@ -25,11 +25,17 @@
 #include    "vector.h"
 
 #if     defined (CONV_CHARSET)
-# include       <tasc.h>
-# define    ttgtchs(c)                  (tasc (c))
-#else
-# define    ttgtchs(c)                  (c)
+# ifndef    TTGETCHS                                                            /* Check if we have a custom conversion call. */
+/**
+ * For mainframes we always want to convert to ASCII if CONV_CHARSET
+ * is defined and we don't have a custom conversion call.
+ */
+#  include      "tasc.h"
+#  define   TTGETCHS                    tasc
+# endif
 #endif
+
+#define     ttgtchs(c)                  TTGETCHS (c)
 
 static const char *filename = 0;
 static unsigned long line_number = 0;

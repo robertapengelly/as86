@@ -13,7 +13,7 @@ EXTRA2=
 COPTS=-S -Os -fno-common -ansi -I. -I../pdos/pdpclib \
     -D__PDOS__ \
     -I../pdos/generic -I../pdos/src \
-    -U__MVS__ -D__MF32__ -D__PDOSGEN__ -D__NOBIVA__ \
+    -U__MVS__ -D__MF32__ -D__PDOSGEN__ -D__NOBIVA__ -D__PDOS__ \
     -DCONV_CHARSET -DCONVTMAC= -DCONVFMAC=
 
 else

@@ -16,7 +16,7 @@ extern char is_end_of_line_array[];
 extern char lex_table[];
 
 #if     defined (CONV_CHARSET)
-# include   "tasc.h"
+# include       "tasc.h"
 # define    is_name_beginner(c)         (lex_table[(int) tasc (c)] & LEX_NAME_START)
 # define    is_name_part(c)             (lex_table[(int) tasc (c)] & LEX_NAME_PART)
 # define    is_end_of_line(c)           (is_end_of_line_array[(int) tasc (c)])
