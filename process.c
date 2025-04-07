@@ -33,6 +33,8 @@
 #  include      "tasc.h"
 #  define   TTGETCHS                    tasc
 # endif
+#else
+# define    TTGETCHS
 #endif
 
 #define     ttgtchs(c)                  TTGETCHS (c)
