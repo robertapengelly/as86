@@ -3822,7 +3822,7 @@ static int match_template (void) {
     
     if (state->model < 7) {
     
-        if (template->base_opcode == 0xC3 && xstrcasecmp (template->name, "retn") && instruction.operands == 0 && state->model >= 4 && state->procs.length > 0) {
+        if (template->base_opcode == 0xC3 && xstrcasecmp (template->name, "retn") && xstrcasecmp (template->name, "retn") && instruction.operands == 0 && state->model >= 4 && state->procs.length > 0) {
             instruction.template.base_opcode = 0xCB;
         }
         
@@ -4577,6 +4577,10 @@ void machine_dependent_apply_fixup (struct fixup *fixup, unsigned long value) {
     
     if (*(p - 1) == 0x9A) {
     
+        if (state->model > 4) {
+            *(p - 1) = 0xff;
+        }
+        
         if (fixup->far_call && fixup->add_symbol == NULL) {
         
             /*if ((long) value >= 32767) {*/
@@ -4592,11 +4596,22 @@ void machine_dependent_apply_fixup (struct fixup *fixup, unsigned long value) {
                 value -= (fixup->where + fixup->frag->address);
                 value -= fixup->size;
                 
-                machine_dependent_number_to_chars (p - 1, 0x0E, 1);
-                machine_dependent_number_to_chars (p + 1, value + 1, 2);
+                if (state->model > 4) {
                 
-                machine_dependent_number_to_chars (p, 0xE8, 1);
-                machine_dependent_number_to_chars (p + 3, 0x90, 1);
+                    machine_dependent_number_to_chars (p - 1, 0x0E, 1);
+                    machine_dependent_number_to_chars (p, 0x3E, 1);
+                    machine_dependent_number_to_chars (p + 1, 0xE8, 1);
+                    machine_dependent_number_to_chars (p + 2, value, 2);
+                
+                } else {
+                
+                    machine_dependent_number_to_chars (p - 1, 0x0E, 1);
+                    machine_dependent_number_to_chars (p + 1, value + 1, 2);
+                    
+                    machine_dependent_number_to_chars (p, 0xE8, 1);
+                    machine_dependent_number_to_chars (p + 3, 0x90, 1);
+                
+                }
             
             }
         
