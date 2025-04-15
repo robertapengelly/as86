@@ -1294,7 +1294,7 @@ struct instruction {
     const struct reg_entry *base_reg;
     const struct reg_entry *index_reg;
     
-    int far_call;
+    int far_call, near_call;
     uint32_t log2_scale_factor;
     
     uint32_t prefixes[MAX_PREFIXES];
@@ -2095,7 +2095,7 @@ static void output_jump (void) {
         }
         
         relax_subtype |= code16;
-        frag_set_as_variant (RELAX_TYPE_MACHINE_DEPENDENT, relax_subtype, symbol, offset, opcode_offset_in_buf, instruction.far_call);
+        frag_set_as_variant (RELAX_TYPE_MACHINE_DEPENDENT, relax_subtype, symbol, offset, opcode_offset_in_buf, 0);
     
     } else {
     
@@ -2104,7 +2104,7 @@ static void output_jump (void) {
                              symbol,
                              offset,
                              opcode_offset_in_buf,
-                             instruction.far_call);
+                             0);
     
     }
 
@@ -2159,9 +2159,9 @@ static void output_call_or_jumpbyte (void) {
     
     if (state->model < 7) {
     
-        if (instruction.template.base_opcode == 0xE8 && size == 2 && (instruction.far_call || state->model >= 4)) {
+        if (instruction.template.base_opcode == 0xE8 && size == 2 && !instruction.near_call && (instruction.far_call || state->model >= 4)) {
         
-            instruction.template.base_opcode = 0x9A;
+            instruction.template.base_opcode = (instruction.far_call ? 0xFF : 0x9A);
             size += 2;
         
         }
@@ -2170,7 +2170,7 @@ static void output_call_or_jumpbyte (void) {
     
     frag_append_1_char (instruction.template.base_opcode);
     
-    if (!instruction.far_call && (instruction.template.opcode_modifier & JUMPBYTE || state->model < 4)) {
+    if (instruction.near_call || (!instruction.far_call && (instruction.template.opcode_modifier & JUMPBYTE || state->model < 4))) {
     
         if (instruction.disps[0]->type == EXPR_TYPE_CONSTANT) {
         
@@ -2261,7 +2261,7 @@ static void output_intersegment_jump (void) {
         machine_dependent_number_to_chars (p, instruction.imms[1]->add_number, size);
     
     } else {
-        fixup_new_expr (current_frag, p - current_frag->buf, size, instruction.imms[1], 0, RELOC_TYPE_DEFAULT, instruction.far_call);
+        fixup_new_expr (current_frag, p - current_frag->buf, size, instruction.imms[1], 0, RELOC_TYPE_DEFAULT, 0);
     }
     
     if (instruction.imms[0]->type != EXPR_TYPE_CONSTANT) {
@@ -3183,6 +3183,10 @@ static int intel_parse_operand (char *operand_string) {
             
             case EXPR_TYPE_NEAR_PTR:
             
+                if (bits != 32 && (current_templates->start->opcode_modifier & CALL) && state->model < 7) {
+                    instruction.near_call = 1;
+                }
+                
                 break;
             
             case EXPR_TYPE_BYTE_PTR:
@@ -3822,11 +3826,11 @@ static int match_template (void) {
     
     if (state->model < 7) {
     
-        if (template->base_opcode == 0xC3 && xstrcasecmp (template->name, "retn") && xstrcasecmp (template->name, "retn") && instruction.operands == 0 && state->model >= 4 && state->procs.length > 0) {
+        if (template->base_opcode == 0xC3 && xstrcasecmp (template->name, "retn") && instruction.operands == 0 && state->model >= 4/* && state->procs.length > 0*/) {
             instruction.template.base_opcode = 0xCB;
         }
         
-        if (template->base_opcode == 0xC2 && instruction.operands == 1 && state->model >= 4 && state->procs.length > 0) {
+        if (template->base_opcode == 0xC2 && instruction.operands == 1 && state->model >= 4/* && state->procs.length > 0*/) {
             instruction.template.base_opcode = 0xCA;
         }
     
@@ -4575,13 +4579,9 @@ void machine_dependent_apply_fixup (struct fixup *fixup, unsigned long value) {
         value += machine_dependent_pcrel_from (fixup);
     }
     
-    if (*(p - 1) == 0x9A) {
+    if (fixup->far_call) {
     
-        if (state->model > 4) {
-            *(p - 1) = 0xff;
-        }
-        
-        if (fixup->far_call && fixup->add_symbol == NULL) {
+        if (fixup->add_symbol == NULL) {
         
             /*if ((long) value >= 32767) {*/
             if ((long) value >= 65535) {
@@ -4596,19 +4596,18 @@ void machine_dependent_apply_fixup (struct fixup *fixup, unsigned long value) {
                 value -= (fixup->where + fixup->frag->address);
                 value -= fixup->size;
                 
-                if (state->model > 4) {
+                if (*(p - 1) == 0xff) {
                 
                     machine_dependent_number_to_chars (p - 1, 0x0E, 1);
-                    machine_dependent_number_to_chars (p, 0x3E, 1);
+                    machine_dependent_number_to_chars (p + 0, 0x3E, 1);
                     machine_dependent_number_to_chars (p + 1, 0xE8, 1);
                     machine_dependent_number_to_chars (p + 2, value, 2);
                 
                 } else {
                 
                     machine_dependent_number_to_chars (p - 1, 0x0E, 1);
+                    machine_dependent_number_to_chars (p + 0, 0xE8, 1);
                     machine_dependent_number_to_chars (p + 1, value + 1, 2);
-                    
-                    machine_dependent_number_to_chars (p, 0xE8, 1);
                     machine_dependent_number_to_chars (p + 3, 0x90, 1);
                 
                 }
