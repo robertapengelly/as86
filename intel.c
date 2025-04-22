@@ -2161,7 +2161,8 @@ static void output_call_or_jumpbyte (void) {
     
         if (instruction.template.base_opcode == 0xE8 && size == 2 && !instruction.near_call && (instruction.far_call || state->model >= 4)) {
         
-            instruction.template.base_opcode = (instruction.far_call ? 0xFF : 0x9A);
+            /*instruction.template.base_opcode = (instruction.far_call ? 0xFF : 0x9A);*/
+            instruction.template.base_opcode = 0x9A;
             size += 2;
         
         }
