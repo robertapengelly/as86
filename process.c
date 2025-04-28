@@ -1065,7 +1065,7 @@ int process_file (const char *fname) {
                         
                         if (machine_dependent_get_bits () == 32) {
                             offset = 8;
-						} else if (state->model < 4) {
+                        } else if (state->model < 4) {
                             offset = 4;
                         } else {
                             offset = 6;
