@@ -1098,7 +1098,7 @@ int process_file (const char *fname) {
                             start_p = line;
                             saved_ch = get_symbol_name_end (&line);
                             
-                            temp = xmalloc (strlen (name) + 1 + 5 + 5 + 1 + 5 + 8 + 2);
+                            temp = xmalloc (strlen (name) + 1 + 5 + 5 + 1 + 5 + 8 + 2 + 2);
                             
                             if (xstrcasecmp (start_p, "byte") == 0 || xstrcasecmp (start_p, "word") == 0) {
                             
@@ -1107,10 +1107,22 @@ int process_file (const char *fname) {
                             
                             } else if (xstrcasecmp (start_p, "dword") == 0) { 
                             
-                                if (state->sym_start) {
-                                    sprintf (temp, "%s [bp + %d]", name, offset);
+                                if (machine_dependent_get_bits () == 32) {
+                                
+                                    if (state->sym_start) {
+                                        sprintf (temp, "%s [ebp + %d]", name, offset);
+                                    } else {
+                                        sprintf (temp, "%s %s ptr [ebp + %d]", name, start_p, offset);
+                                    }
+                                
                                 } else {
-                                    sprintf (temp, "%s %s ptr [bp + %d]", name, start_p, offset);
+                                
+                                    if (state->sym_start) {
+                                        sprintf (temp, "%s [bp + %d]", name, offset);
+                                    } else {
+                                        sprintf (temp, "%s %s ptr [bp + %d]", name, start_p, offset);
+                                    }
+                                
                                 }
                                 
                                 offset += 4;
@@ -1119,7 +1131,12 @@ int process_file (const char *fname) {
                             
                                 if (machine_dependent_get_bits () == 32 || state->model >= 5) {
                                 
-                                    sprintf (temp, "%s [bp + %d]", name, offset);
+                                    if (machine_dependent_get_bits () == 32) {
+                                        sprintf (temp, "%s [ebp + %d]", name, offset);
+                                    } else {
+                                        sprintf (temp, "%s [bp + %d]", name, offset);
+                                    }
+                                    
                                     offset += 4;
                                 
                                 } else {
@@ -1150,15 +1167,27 @@ int process_file (const char *fname) {
                         
                         if (proc->args.length > 0) {
                         
-                            char *temp = xmalloc (8);
-                            sprintf (temp, "push bp");
+                            char *temp = xmalloc (10);
+                            
+                            if (machine_dependent_get_bits () == 32) {
+                                sprintf (temp, "push ebp");
+                            } else {
+                                sprintf (temp, "push bp");
+                            }
                             
                             machine_dependent_assemble_line (temp);
+                            free (temp);
                             
-                            temp = xmalloc (10);
-                            sprintf (temp, "mov bp, sp");
+                            temp = xmalloc (12);
+                            
+                            if (machine_dependent_get_bits () == 32) {
+                                sprintf (temp, "mov ebp, esp");
+                            } else {
+                                sprintf (temp, "mov bp, sp");
+                            }
                             
                             machine_dependent_assemble_line (temp);
+                            free (temp);
                         
                         }
                         
